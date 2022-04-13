@@ -1,0 +1,44 @@
+{
+  "root": "apps/yana-exhange-backend",
+  "sourceRoot": "apps/yana-exhange-backend/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/node:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/yana-exhange-backend",
+        "main": "apps/yana-exhange-backend/src/main.ts",
+        "tsConfig": "apps/yana-exhange-backend/tsconfig.app.json",
+        "assets": ["apps/yana-exhange-backend/src/assets"]
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false,
+          "fileReplacements": [
+            {
+              "replace": "apps/yana-exhange-backend/src/environments/environment.ts",
+              "with": "apps/yana-exhange-backend/src/environments/environment.prod.ts"
+            }
+          ]
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nrwl/node:node",
+      "options": {
+        "buildTarget": "yana-exhange-backend:build"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/yana-exhange-backend/**/*.ts"]
+      }
+    }
+  },
+  "tags": []
+}

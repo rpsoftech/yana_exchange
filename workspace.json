@@ -1,4 +1,8 @@
 {
   "version": 2,
-  "projects": {}
+  "projects": {
+    "yana-exchange-frontend-sdk": "libs/yana-exchange-frontend-sdk",
+    "yana-exchange-interface": "libs/yana-exchange-interface",
+    "yana-exhange-backend": "apps/yana-exhange-backend"
+  }
 }

@@ -14,7 +14,12 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@yana-exchange/frontend-sdk": [
+        "libs/yana-exchange-frontend-sdk/src/index.ts"
+      ],
+      "@yana-exhchange/interface": ["libs/yana-exchange-interface/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

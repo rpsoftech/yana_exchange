@@ -1,0 +1,24 @@
+{
+  "root": "libs/yana-exchange-interface",
+  "sourceRoot": "libs/yana-exchange-interface/src",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/yana-exchange-interface",
+        "main": "libs/yana-exchange-interface/src/index.ts",
+        "tsConfig": "libs/yana-exchange-interface/tsconfig.lib.json",
+        "assets": ["libs/yana-exchange-interface/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["libs/yana-exchange-interface/**/*.ts"]
+      }
+    }
+  },
+  "tags": []
+}

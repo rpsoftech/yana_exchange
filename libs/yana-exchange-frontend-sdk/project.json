@@ -1,0 +1,32 @@
+{
+  "root": "libs/yana-exchange-frontend-sdk",
+  "sourceRoot": "libs/yana-exchange-frontend-sdk/src",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/yana-exchange-frontend-sdk",
+        "main": "libs/yana-exchange-frontend-sdk/src/index.ts",
+        "tsConfig": "libs/yana-exchange-frontend-sdk/tsconfig.lib.json",
+        "assets": ["libs/yana-exchange-frontend-sdk/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["libs/yana-exchange-frontend-sdk/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/yana-exchange-frontend-sdk"],
+      "options": {
+        "jestConfig": "libs/yana-exchange-frontend-sdk/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": ["YanaExchangeFrontendSdk"]
+}
