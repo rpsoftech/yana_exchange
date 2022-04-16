@@ -15,12 +15,13 @@
       "configurations": {
         "production": {
           "optimization": true,
-          "extractLicenses": true,
+          "extractLicenses": false,
+          "externalDependencies": "none",
           "inspect": false,
           "fileReplacements": [
             {
-              "replace": "apps/yana-exhange-backend/src/environments/environment.ts",
-              "with": "apps/yana-exhange-backend/src/environments/environment.prod.ts"
+              "replace": "apps/sample-socket-v2/src/environments/environment.ts",
+              "with": "apps/sample-socket-v2/src/environments/environment.prod.ts"
             }
           ]
         }

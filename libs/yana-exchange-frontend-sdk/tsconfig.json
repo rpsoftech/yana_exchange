@@ -5,6 +5,7 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitOverride": true,
+    "removeComments": false,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
@@ -12,6 +13,9 @@
   "files": [],
   "include": [],
   "references": [
+    {
+      "path": "./tsconfig.doc.json"
+    },
     {
       "path": "./tsconfig.lib.json"
     },

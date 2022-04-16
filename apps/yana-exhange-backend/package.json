@@ -1,0 +1,25 @@
+{
+  "name": "yana-exhange-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "prisma": {
+    "schema": "./src/prisma/schema.prisma"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "prisma generate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/uuid": "*"
+  },
+  "dependencies": {
+    "mariadb": "*",
+    "query-builder-mysql": "*",
+    "axios": "*",
+    "uuid": "*"
+  }
+}
