@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from 'database';
 import { Server } from 'socket.io';
 
 export const DbPrisma = new PrismaClient();
-
+// DbPrisma.room.findMany().then(console.log);
 export const RoomStatus: {
   [room_id: string]: number;
 } = {};
@@ -14,5 +14,5 @@ export const BotIds: {
 
 export const server = new Server({
   cors: '*',
-  transports: ['websocket'],
+  // transports: ['websocket'],
 } as any);

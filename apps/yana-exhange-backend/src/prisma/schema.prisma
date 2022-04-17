@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../../node_modules/.prisma/client"
+  output   = "../../node_modules/database"
 }
 
 datasource db {
@@ -25,14 +25,16 @@ model ChatUsers {
   UniqueID            String  @id @db.VarChar(30)
   ChatUsersRoomID     String? @unique(map: "ChatUsersRoomID") @db.VarChar(30)
   ChatUsersAttributes Json
+  Room                Room?   @relation(fields: [ChatUsersRoomID], references: [RoomID], onDelete: Cascade, map: "ChatUserRoomIdFk")
 }
 
 model Room {
-  RoomID         String @id @db.VarChar(30)
+  RoomID         String     @id @db.VarChar(30)
   RoomStatus     Int
   RoomChannelID  Int
   RoomAttributes Json
   RoomCreatedOn  Int
+  ChatUsers      ChatUsers?
 
   @@index([RoomChannelID], map: "RoomChannelID")
   @@index([RoomCreatedOn], map: "RoomCreatedOn")

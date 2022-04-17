@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { InitSdk } from '@yana-exchange/frontend-sdk';
 
 @Component({
   selector: 'yana-exchange-root',
@@ -6,5 +7,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title = 'yana-exchange-test';
+  constructor() {
+    InitSdk('http://localhost:3101/users', {
+      name: 'Keyur shah',
+    });
+  }
 }

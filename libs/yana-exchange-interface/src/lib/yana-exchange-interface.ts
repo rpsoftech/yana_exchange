@@ -17,22 +17,22 @@ export interface ExtraDataForSendingRequestToSever {
 }
 
 export interface UserData {
-  type: 'anno';
-  data: {
-    UniqueID: string;
-    ChatUsersRoomID: string;
-    ChatUsersAttributes: {
-      name: string;
-    };
+  UniqueID: string;
+  ChatUsersRoomID: string;
+  ChatUsersAttributes?: {
+    name: string;
   };
 }
 
 export interface SocketioSocket extends Socket {
-  user_data: UserData;
+  user_data: UserData & {
+    type?: 'anno';
+  };
   handshake: Handshake & {
     auth: {
-      type: 'anno';
-      uid: string;
+      type?: 'anno';
+      name?: string;
+      token?: string;
     };
   };
 }

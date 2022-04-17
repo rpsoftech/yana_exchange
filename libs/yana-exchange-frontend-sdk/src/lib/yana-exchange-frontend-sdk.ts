@@ -52,7 +52,12 @@ export class YanaExchange {
       })
       .on('auth_change', (a) =>
         localStorage.setItem('yana_exchange_auth', JSON.stringify(a))
-      );
+      )
+      .on('disconnect', () => {
+        this.io.close();
+        this.io.disconnect();
+        this.init();
+      });
   }
   private ChangeLang(lang: SupportedLanguage) {
     this.SendMessages('lang-change', {
@@ -69,7 +74,7 @@ export class YanaExchange {
   }
   private GetAuthentication() {
     console.log('oahsdoaisjdo');
-    
+
     const a = localStorage.getItem('yana_exchange_auth');
     return a === null ? {} : JSON.parse(a);
   }
