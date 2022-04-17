@@ -1,0 +1,89 @@
+{
+  "projectType": "application",
+  "root": "apps/yana-exchange-lib-testing",
+  "sourceRoot": "apps/yana-exchange-lib-testing/src",
+  "prefix": "yana-exchange",
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:browser",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/yana-exchange-lib-testing",
+        "index": "apps/yana-exchange-lib-testing/src/index.html",
+        "main": "apps/yana-exchange-lib-testing/src/main.ts",
+        "polyfills": "apps/yana-exchange-lib-testing/src/polyfills.ts",
+        "tsConfig": "apps/yana-exchange-lib-testing/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          "apps/yana-exchange-lib-testing/src/favicon.ico",
+          "apps/yana-exchange-lib-testing/src/assets"
+        ],
+        "styles": ["apps/yana-exchange-lib-testing/src/styles.scss"],
+        "scripts": []
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "2kb",
+              "maximumError": "4kb"
+            }
+          ],
+          "fileReplacements": [
+            {
+              "replace": "apps/yana-exchange-lib-testing/src/environments/environment.ts",
+              "with": "apps/yana-exchange-lib-testing/src/environments/environment.prod.ts"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@angular-devkit/build-angular:dev-server",
+      "configurations": {
+        "production": {
+          "browserTarget": "yana-exchange-lib-testing:build:production"
+        },
+        "development": {
+          "browserTarget": "yana-exchange-lib-testing:build:development"
+        }
+      },
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 4312
+      }
+    },
+    "extract-i18n": {
+      "executor": "@angular-devkit/build-angular:extract-i18n",
+      "options": {
+        "browserTarget": "yana-exchange-lib-testing:build"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "apps/yana-exchange-lib-testing/src/**/*.ts",
+          "apps/yana-exchange-lib-testing/src/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": []
+}
