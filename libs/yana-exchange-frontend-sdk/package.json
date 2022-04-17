@@ -4,9 +4,12 @@
   "type": "commonjs",
   "scripts": {
     "compodoc": "npx compodoc -p tsconfig.doc.json -s",
-    "docs":"typedoc ./src/index.ts"
+    "docs": "typedoc ./src/index.ts"
   },
   "dependencies": {},
-  "devDependencies": {
-  }
+  "peerDependencies": {
+    "socket.io-client": "*",
+    "@yana-exhchange/interface": "*"
+  },
+  "devDependencies": {}
 }
