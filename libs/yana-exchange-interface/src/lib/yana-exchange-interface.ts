@@ -23,10 +23,18 @@ export interface UserData {
     name: string;
   };
 }
-
+export type Room = {
+  RoomID?: string;
+  RoomStatus?: number;
+  RoomChannelID?: number;
+  RoomAttributes?: any;
+  RoomCreatedOn?: number;
+};
 export interface SocketioSocket extends Socket {
-  user_data: UserData & {
-    type?: 'anno';
+  user_data: {
+    user?:UserData;
+    room?:Room;
+    type?: 'anno'|'auth';
   };
   handshake: Handshake & {
     auth: {

@@ -1,31 +1,47 @@
 import { SocketioSocket, UserData } from '@yana-exhchange/interface';
 import { Server } from 'socket.io';
 import { v4 as uuid } from 'uuid';
-import { DbPrisma } from './Database';
+import { DbPool, GetUsers } from './Database';
 import { SignData, VerifyData } from './Genralunctions';
 export function AddUserNameSpace(server: Server) {
   server.of('users').use(async (socket: SocketioSocket, next) => {
+    socket.user_data = {};
     if (typeof socket.handshake.auth.token === 'undefined') {
       const user = await CreateNewUser(socket.handshake.auth.name);
-      socket.user_data = user.user as any;
-      socket.user_data.type = 'anno';
+      socket.user_data = {
+        user: user.user as any,
+        type: 'anno',
+      };
       socket.emit('auth_change', user);
     } else {
       const u = VerifyData(socket.handshake.auth.token);
-      console.log(u);
-      socket.user_data = u.user as any;
-      socket.user_data.type = u.type;
+      socket.user_data = {
+        user: u.user as any,
+        type: u.type,
+      };
     }
-    if (socket.user_data.ChatUsersRoomID === null) {
-      const UserData = await DbPrisma.chatUsers.findUnique({
-        where: {
-          UniqueID: socket.user_data.UniqueID,
-        },
-        select: {
-          Room: true,
-        },
+    if (socket.user_data.user.ChatUsersRoomID === null) {
+      console.log(socket.user_data.user.UniqueID);
+      const UsersDataArray = await GetUsers({
+        uid: socket.user_data.user.UniqueID,
+        join_room: true,
       });
-      
+      if (UsersDataArray.length === 0) {
+        next(new Error('User Not Found'));
+        return;
+      }
+      const user = UsersDataArray[0];
+      if (user.RoomStatus === null) {
+        //TODO: Create New Seesion
+      } else {
+        socket.user_data.room = {
+          RoomID: user.RoomID,
+          RoomChannelID: user.RoomChannelID,
+          RoomStatus: user.RoomStatus,
+          RoomAttributes: user.RoomAttributes,
+          RoomCreatedOn: user.RoomCreatedOn,
+        };
+      }
     }
     next();
   });
@@ -39,14 +55,14 @@ async function CreateNewUser(name: string) {
     UniqueID: uid,
     ChatUsersAttributes: { name },
   };
-  await DbPrisma.chatUsers
-    .createMany({
-      data: [user as any],
-    })
-    .catch((e) => {
-      console.log(e);
-      return {};
-    });
+  const db = await DbPool.get_connection();
+  try {
+    await db.insert('ChatUsers', user);
+  } catch (error) {
+    db.release();
+    throw error;
+  }
+  db.release();
   const token = SignData({
     user,
     type: 'anno',
