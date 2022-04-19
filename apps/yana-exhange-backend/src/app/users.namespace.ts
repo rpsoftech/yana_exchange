@@ -7,7 +7,8 @@ export function AddUserNameSpace(server: Server) {
   server.of('users').use(async (socket: SocketioSocket, next) => {
     socket.user_data = {};
     if (typeof socket.handshake.auth.token === 'undefined') {
-      const user = await CreateNewUser(socket.handshake.auth.name);
+      //TODO: Make Configurable Users Default Name
+      const user = await CreateNewUser(socket.handshake.auth.name || 'Anno');
       socket.user_data = {
         user: user.user as any,
         type: 'anno',
@@ -20,6 +21,7 @@ export function AddUserNameSpace(server: Server) {
         type: u.type,
       };
     }
+    console.log(socket.user_data.user);
     if (socket.user_data.user.ChatUsersRoomID === null) {
       console.log(socket.user_data.user.UniqueID);
       const UsersDataArray = await GetUsers({
@@ -33,6 +35,7 @@ export function AddUserNameSpace(server: Server) {
       const user = UsersDataArray[0];
       if (user.RoomStatus === null) {
         //TODO: Create New Seesion
+        
       } else {
         socket.user_data.room = {
           RoomID: user.RoomID,
@@ -48,8 +51,6 @@ export function AddUserNameSpace(server: Server) {
 }
 async function CreateNewUser(name: string) {
   const uid = uuid();
-
-  // const user = await DbPrisma.$executeRawUnsafe(`INSERT INTO \`ChatUsers\` (\`UniqueID\`,\`ChatUsersAttributes\`) VALUES ('${uid}', '{}');`)
   const user: UserData = {
     ChatUsersRoomID: null,
     UniqueID: uid,

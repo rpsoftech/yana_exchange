@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BotAPIResponse, BotContext } from '@yana-exhchange/interface';
+import {
+  BotAPIResponse,
+  BotContext,
+  SupportedLanguage,
+} from '@yana-exhchange/interface';
 import * as ax from 'axios';
 export const BotIdWithContext: {
   [key: string]: BotContext;
@@ -8,17 +12,15 @@ export const BotIdWithContext: {
 export async function RequestToBot(
   text: string,
   options: {
-    botid?: string;
+    lang?: SupportedLanguage;
+    roomid: string;
     user_id?: string;
   }
 ) {
   return ax.default
     .post<BotAPIResponse>('https://yanademo-orchestrator.yanaimpl.com/', {
       text: text,
-      context:
-        options.botid && BotIdWithContext[options.botid]
-          ? BotIdWithContext[options.botid]
-          : {},
+      context: await GetBotContext(options.roomid),
       userId: options.user_id ? options.user_id : '0000',
       personID: '',
       addtnlInputParams: {
@@ -29,7 +31,7 @@ export async function RequestToBot(
       additionalPersistentInformation: {},
       userDisplayName: '',
       messageId: '',
-      languageCode: 'en',
+      languageCode: options.lang ? options.lang.toLowerCase() : 'en',
       source: 'webapp',
       applicationId: '83',
       testMode: 'N',
@@ -37,7 +39,7 @@ export async function RequestToBot(
       sourceVersion: ' 2.10.0.1',
     })
     .then((a) => {
-      BotIdWithContext[a.data.context.bot_conversation_id] = a.data.context;
+      SetBotContext(options.roomid, a.data.context);
       return {
         bot_id: a.data.context.bot_conversation_id,
         response: a.data.output,
@@ -46,11 +48,11 @@ export async function RequestToBot(
     });
 }
 
-export async function GetBotContext(context_id: string) {
+export async function GetBotContext(roomid: string) {
   // TODO: Get Data from redis database
-  return BotIdWithContext[context_id];
+  return BotIdWithContext[roomid] || {};
 }
-export async function SetBotContext(context_id: string, con: BotContext) {
+export async function SetBotContext(roomid: string, con: BotContext) {
   // TODO: Get Data from redis database
-  BotIdWithContext[context_id] = con;
+  BotIdWithContext[roomid] = con;
 }

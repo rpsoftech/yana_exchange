@@ -50,14 +50,14 @@ export class YanaExchange {
       .on('connect', () => {
         this.ChangeLang(this.options.language as any);
       })
-      .on('auth_change', (a) =>
-        localStorage.setItem('yana_exchange_auth', JSON.stringify(a))
-      )
+      .on('auth_change', (a) => {
+        localStorage.setItem('yana_exchange_auth', JSON.stringify(a));
+      })
       .on('disconnect', () => {
         this.io.close();
         this.io.disconnect();
         this.init();
-      });
+      }).onAny(console.log);
   }
   private ChangeLang(lang: SupportedLanguage) {
     this.SendMessages('lang-change', {

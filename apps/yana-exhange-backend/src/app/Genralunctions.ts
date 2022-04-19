@@ -9,3 +9,7 @@ export function SignData(user: any) {
 export function VerifyData(token: string): any {
   return verify(token, key);
 }
+
+export function GetTimeStamp() {
+  return Math.floor(Date.now() / 1000);
+}

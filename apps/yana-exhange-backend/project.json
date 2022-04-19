@@ -7,6 +7,8 @@
       "executor": "@nrwl/node:webpack",
       "outputs": ["{options.outputPath}"],
       "options": {
+        "buildLibsFromSource": true,
+        "progress": true,
         "outputPath": "dist/apps/yana-exhange-backend",
         "main": "apps/yana-exhange-backend/src/main.ts",
         "tsConfig": "apps/yana-exhange-backend/tsconfig.app.json",
