@@ -14,11 +14,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/uuid": "*",
-    "prisma": "*"
+    "@types/uuid": "*"
   },
   "dependencies": {
-    "@prisma/client": "*",
+    "mariadb": "*",
+    "query-builder-mysql": "*",
     "axios": "*",
     "uuid": "*"
   }

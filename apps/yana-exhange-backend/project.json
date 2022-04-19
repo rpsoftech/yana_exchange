@@ -7,8 +7,6 @@
       "executor": "@nrwl/node:webpack",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "buildLibsFromSource": true,
-        "progress": true,
         "outputPath": "dist/apps/yana-exhange-backend",
         "main": "apps/yana-exhange-backend/src/main.ts",
         "tsConfig": "apps/yana-exhange-backend/tsconfig.app.json",
@@ -17,12 +15,13 @@
       "configurations": {
         "production": {
           "optimization": true,
-          "extractLicenses": true,
+          "extractLicenses": false,
+          "externalDependencies": "none",
           "inspect": false,
           "fileReplacements": [
             {
-              "replace": "apps/yana-exhange-backend/src/environments/environment.ts",
-              "with": "apps/yana-exhange-backend/src/environments/environment.prod.ts"
+              "replace": "apps/sample-socket-v2/src/environments/environment.ts",
+              "with": "apps/sample-socket-v2/src/environments/environment.prod.ts"
             }
           ]
         }
@@ -42,5 +41,5 @@
       }
     }
   },
-  "tags": ["yana-exhange-backend"]
+  "tags": []
 }

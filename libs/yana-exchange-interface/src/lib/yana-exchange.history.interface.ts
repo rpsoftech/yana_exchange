@@ -14,6 +14,7 @@ export interface CHAttributes {
   bot?: {
     output: Output;
     results: Results;
+    results1: Results;
   };
 }
 

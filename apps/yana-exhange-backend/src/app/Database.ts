@@ -126,6 +126,7 @@ export async function CreateNewBotSession(uname: string, roomid: string) {
           msg_from_name: 'BOT',
           bot: {
             output: BotRespo.response,
+            results1: BotRespo.extra.results,
             results: BotRespo.extra.results,
           },
         },
