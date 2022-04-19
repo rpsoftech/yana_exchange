@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ChatUsers, Room } from 'prisma_database';
+import { ChatUsers } from 'prisma_database';
 import { Server } from 'socket.io';
 import { Pool, QueryExec } from 'query-builder-mysql';
 import { environment } from '../environments/environment';
@@ -8,7 +8,14 @@ import { v4 as uuid } from 'uuid';
 import { GetTimeStamp } from './Genralunctions';
 import {
   ChatHistory,
+  Room,
+  RoomUncheckedUpdateInput,
   ChatHistoryUncheckedCreateInput,
+  ChanneIDS,
+  RoomStatus,
+  UserData,
+  SupportedLanguage,
+  ChatHistoruReqServer,
 } from '@yana-exhchange/interface';
 
 export const DbPool = new Pool({
@@ -19,7 +26,7 @@ export const DbPool = new Pool({
   database: process.env.DATABASE,
 });
 // DbPrisma.room.findMany().then(console.log);
-export const RoomStatus: {
+export const ActiveRoomStatus: {
   [room_id: string]: number;
 } = {};
 
@@ -62,6 +69,54 @@ export async function GetUsers(where?: {
   }
 }
 
+export async function InsertUpdateRoom(
+  data: RoomUncheckedUpdateInput,
+  where?: RoomUncheckedUpdateInput,
+  dbRef?: QueryExec
+) {
+  const db = dbRef || (await DbPool.get_connection());
+  try {
+    let p: Promise<any>;
+    if (where && where !== null) {
+      p = db.update('Room', data, where);
+    } else {
+      p = db.insert('Room', data);
+    }
+    return p.finally(() => {
+      if (typeof dbRef === 'undefined') {
+        db.release();
+      }
+    });
+  } catch (error) {
+    if (typeof dbRef === 'undefined') {
+      db.release();
+    }
+  }
+}
+export async function InsertChatUsers(
+  data: UserData,
+  where?: UserData,
+  dbRef?: QueryExec
+) {
+  const db = dbRef || (await DbPool.get_connection());
+  try {
+    let p: Promise<any>;
+    if (where && where !== null) {
+      p = db.update('ChatUsers', data, where);
+    } else {
+      p = db.insert('ChatUsers', data);
+    }
+    return p.finally(() => {
+      if (typeof dbRef === 'undefined') {
+        db.release();
+      }
+    });
+  } catch (error) {
+    if (typeof dbRef === 'undefined') {
+      db.release();
+    }
+  }
+}
 export async function InsertUpdateChatHistory(
   data: ChatHistoryUncheckedCreateInput,
   where?: ChatHistory,
@@ -90,23 +145,90 @@ export async function CreateNewChatRecord(
   data: ChatHistoryUncheckedCreateInput,
   roomid: string,
   emitToRoom: boolean,
-  dbRef: QueryExec
+  emit_delay = 0,
+  dbRef?: QueryExec
 ) {
   return InsertUpdateChatHistory(data, null, dbRef).finally(() => {
     if (emitToRoom === true) {
-      server.of('users').to(roomid).emit('new_chat_record', data);
-      server.of('agent').to(roomid).emit('new_chat_record', data);
+      setTimeout(() => {
+        server.of('users').to(roomid).emit('NewMessage', data);
+        server.of('agent').to(roomid).emit('NewMessage', data);
+      }, emit_delay);
     }
   });
 }
-export async function CreateNewBotSession(uname: string, roomid: string) {
-  const BotRespo = await RequestToBot('Hello', {
+export async function SendMessageToBot(
+  message: string,
+  roomid: string,
+  uname: string
+) {
+  CreateNewChatRecord(
+    {
+      ChatHistoryId: uuid(),
+      CHAttributes: {
+        msg_from_name: uname,
+      },
+      CHCreatedOn: GetTimeStamp(),
+      CHRoomID: roomid,
+      Message: message,
+      MessageFrom: 'USER',
+    },
+    roomid,
+    true,
+    0
+  );
+  const BotRespo = await RequestToBot(message, {
     roomid,
   });
+  const lang = BotRespo.extra.languageCode.toUpperCase();
+  CreateNewChatRecord(
+    {
+      ChatHistoryId: BotRespo.extra.MessageId,
+      CHAttributes: {
+        msg_from_name: 'BOT',
+        bot: {
+          output: BotRespo.response,
+          results1: BotRespo.extra.results,
+          results: BotRespo.extra.results,
+        },
+      },
+      CHCreatedOn: GetTimeStamp(),
+      CHRoomID: roomid,
+      Message: BotRespo.response[lang]
+        ? BotRespo.response[lang].text[0]
+        : BotRespo.response.EN.text[0],
+      MessageFrom: 'BOT',
+    },
+    roomid,
+    true,
+    0
+  );
+}
+export async function CreateNewBotSession(
+  uname: string,
+  roomid: string,
+  UniqueID: string,
+  lang?: SupportedLanguage
+) {
+  const BotRespo = await RequestToBot('Hello', {
+    roomid,
+    lang,
+  });
+  const RoomEntry = {
+    RoomAttributes: {
+      created_by_unique_id: UniqueID,
+    },
+    RoomChannelID: ChanneIDS.CHAT,
+    RoomCreatedOn: GetTimeStamp(),
+    RoomStatus: RoomStatus.ACTIVE,
+    RoomID: roomid,
+  };
   const db = await DbPool.get_connection();
   try {
+    await InsertUpdateRoom(RoomEntry);
     const p = CreateNewChatRecord(
       {
+        ChatHistoryId: uuid(),
         CHAttributes: {
           reason: 'Chat ses init',
           msg_from_name: uname,
@@ -118,10 +240,12 @@ export async function CreateNewBotSession(uname: string, roomid: string) {
       },
       roomid,
       true,
+      100,
       db
     );
     const p1 = CreateNewChatRecord(
       {
+        ChatHistoryId: BotRespo.extra.MessageId,
         CHAttributes: {
           msg_from_name: 'BOT',
           bot: {
@@ -132,16 +256,66 @@ export async function CreateNewBotSession(uname: string, roomid: string) {
         },
         CHCreatedOn: GetTimeStamp(),
         CHRoomID: roomid,
-        Message: BotRespo.response.EN.text[0],
+        Message: BotRespo.response[lang]
+          ? BotRespo.response[lang].text[0]
+          : BotRespo.response.EN.text[0],
         MessageFrom: 'BOT',
       },
       roomid,
       true,
+      100,
       db
     );
-    await Promise.all([p, p1]);
+    const p2 = InsertChatUsers(
+      {
+        ChatUsersRoomID: roomid,
+      },
+      {
+        UniqueID: UniqueID,
+      },
+      db
+    );
+    await Promise.all([p, p1, p2]);
     db.release();
   } catch (error) {
     db.release();
+  }
+  return {
+    room: RoomEntry,
+  };
+}
+
+export async function GetChatHistory(req?: ChatHistoruReqServer) {
+  const db = await DbPool.get_connection();
+  try {
+    if (req) {
+      if (req.CHRoomID) {
+        if (Array.isArray(req.CHRoomID)) {
+          db.where_in('ch.CHRoomID', req.CHRoomID);
+        } else {
+          db.where('ch.CHRoomID', req.CHRoomID);
+        }
+      }
+      if (req.ChatHistoryId) {
+        if (Array.isArray(req.ChatHistoryId)) {
+          db.where_in('ch.ChatHistoryId', req.ChatHistoryId);
+        } else {
+          db.where('ch.ChatHistoryId', req.ChatHistoryId);
+        }
+      }
+      if (
+        req.get_all === false &&
+        typeof req.limit === 'number' &&
+        typeof req.stream === 'number'
+      ) {
+        db.limit(req.limit, (req.stream - 1) * req.limit);
+      }
+    }
+    return db.get('ChatHistory as ch').finally(() => {
+      db.release();
+    });
+  } catch (error) {
+    db.release();
+    return [];
   }
 }

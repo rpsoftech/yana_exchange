@@ -1,7 +1,19 @@
-import { SocketioSocket, UserData } from '@yana-exhchange/interface';
+import {
+  ExtraDataForSendingRequestToSever,
+  SocketioSocket,
+  TypesForSendingRequestToSever,
+  UserData,
+} from '@yana-exhchange/interface';
 import { Server } from 'socket.io';
 import { v4 as uuid } from 'uuid';
-import { DbPool, GetUsers } from './Database';
+import { ChangeLang, LikeDisLikeMessage } from './BotChat';
+import {
+  CreateNewBotSession,
+  GetChatHistory,
+  GetUsers,
+  InsertChatUsers,
+  SendMessageToBot,
+} from './Database';
 import { SignData, VerifyData } from './Genralunctions';
 export function AddUserNameSpace(server: Server) {
   server.of('users').use(async (socket: SocketioSocket, next) => {
@@ -21,9 +33,7 @@ export function AddUserNameSpace(server: Server) {
         type: u.type,
       };
     }
-    console.log(socket.user_data.user);
     if (socket.user_data.user.ChatUsersRoomID === null) {
-      console.log(socket.user_data.user.UniqueID);
       const UsersDataArray = await GetUsers({
         uid: socket.user_data.user.UniqueID,
         join_room: true,
@@ -35,7 +45,15 @@ export function AddUserNameSpace(server: Server) {
       const user = UsersDataArray[0];
       if (user.RoomStatus === null) {
         //TODO: Create New Seesion
-        
+        const roomid = uuid();
+        socket.join(roomid);
+        const a = await CreateNewBotSession(
+          socket.user_data.user.ChatUsersAttributes.name,
+          roomid,
+          user.UniqueID,
+          socket.handshake.auth.lang
+        );
+        socket.user_data.room = a.room;
       } else {
         socket.user_data.room = {
           RoomID: user.RoomID,
@@ -44,9 +62,70 @@ export function AddUserNameSpace(server: Server) {
           RoomAttributes: user.RoomAttributes,
           RoomCreatedOn: user.RoomCreatedOn,
         };
+        socket.join(user.RoomID);
       }
     }
     next();
+  });
+  server.of('users').on('connection', (s: SocketioSocket) => {
+    s.on(
+      'message',
+      async (a: {
+        type: TypesForSendingRequestToSever;
+        data: ExtraDataForSendingRequestToSever;
+      }) => {
+        if (a.type === 'lang-change') {
+          const roomid = s.user_data.room.RoomID;
+          const lang = a.data['lang-change'].lang;
+          await ChangeLang(roomid, lang);
+          s.emit('lang-chang', {
+            success: true,
+          });
+        } else if (
+          a.type === 'like-dislike' &&
+          typeof a.data['like-dislike'] !== 'undefined'
+        ) {
+          const b = await LikeDisLikeMessage(
+            a.data['like-dislike'].likeOrDislike,
+            a.data['like-dislike'].reasonsSelected,
+            a.data['like-dislike'].messageId
+          );
+          s.emit(
+            'like-dislike',
+            Object.assign(b, {
+              messageId: a.data['like-dislike'].messageId,
+            })
+          );
+        } else if (
+          a.type === 'send-message' &&
+          typeof a.data['send-message'] !== 'undefined'
+        ) {
+          //TODO: Check Room Status Here Then Send To Bot
+          SendMessageToBot(
+            a.data['send-message'].message,
+            s.user_data.room.RoomID,
+            s.user_data.user.ChatUsersAttributes.name
+          );
+        } else if (
+          a.type === 'chat-history' &&
+          typeof a.data['chat-history'] !== 'undefined'
+        ) {
+          //TODO: Check Room Status Here Then Send To Bot
+          const roomid = s.user_data.room.RoomID;
+          s.emit(
+            'chat-history',
+            await GetChatHistory(
+              Object.assign(
+                {
+                  CHRoomID: roomid,
+                },
+                a.data['chat-history']
+              )
+            )
+          );
+        }
+      }
+    );
   });
 }
 async function CreateNewUser(name: string) {
@@ -56,14 +135,7 @@ async function CreateNewUser(name: string) {
     UniqueID: uid,
     ChatUsersAttributes: { name },
   };
-  const db = await DbPool.get_connection();
-  try {
-    await db.insert('ChatUsers', user);
-  } catch (error) {
-    db.release();
-    throw error;
-  }
-  db.release();
+  await InsertChatUsers(user);
   const token = SignData({
     user,
     type: 'anno',

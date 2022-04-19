@@ -8,8 +8,22 @@ import { InitSdk } from '@yana-exchange/frontend-sdk';
 })
 export class AppComponent {
   constructor() {
-    InitSdk('http://localhost:3101/users', {
+    const b = InitSdk('http://localhost:3101/users', {
       name: 'Keyur shah',
+      language: 'EN',
     });
+    b.on('connect').subscribe(() => {
+      console.log('asihdiasodhoihasdho');
+    });
+    b.GetChatHistory({
+      get_all:true
+    }).then(console.log);
+    b.on('NewMessage').subscribe(console.log);
+    setTimeout(() => {
+      b.CurrentLanguage = 'EN';
+      b.SendMessage('send-message', {
+        message: 'HEEEEELLLOOOO',
+      });
+    }, 5000);
   }
 }
