@@ -19,6 +19,16 @@
         "lintFilePatterns": ["libs/yana-exchange-frontend-sdk/**/*.ts"]
       }
     },
+    "docs": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "npx typedoc --tsconfig libs/yana-exchange-frontend-sdk/tsconfig.lib.json --out docs/yana-exchange-frontend-sdk libs/yana-exchange-frontend-sdk/src/index.ts"
+          }
+        ]
+      }
+    },
     "test": {
       "executor": "@nrwl/jest:jest",
       "outputs": ["coverage/libs/yana-exchange-frontend-sdk"],

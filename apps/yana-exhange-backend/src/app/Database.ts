@@ -3,7 +3,7 @@ import { ChatUsers } from 'prisma_database';
 import { Server } from 'socket.io';
 import { Pool, QueryExec } from 'query-builder-mysql';
 import { environment } from '../environments/environment';
-import { RequestToBot } from './BotChat';
+import { DeviceSyncCallForBot, RequestToBot } from './BotChat';
 import { v4 as uuid } from 'uuid';
 import { GetTimeStamp } from './Genralunctions';
 import {
@@ -157,28 +157,30 @@ export async function CreateNewChatRecord(
     }
   });
 }
-export async function SendMessageToBot(
-  message: string,
-  roomid: string,
-  uname: string
-) {
+export async function SendMessageToBot(options: {
+  message: string;
+  roomid: string;
+  uname: string;
+  followup_key?: string;
+}) {
   CreateNewChatRecord(
     {
       ChatHistoryId: uuid(),
       CHAttributes: {
-        msg_from_name: uname,
+        msg_from_name: options.uname,
       },
       CHCreatedOn: GetTimeStamp(),
-      CHRoomID: roomid,
-      Message: message,
+      CHRoomID: options.roomid,
+      Message: options.message,
       MessageFrom: 'USER',
     },
-    roomid,
+    options.roomid,
     true,
     0
   );
-  const BotRespo = await RequestToBot(message, {
-    roomid,
+  const BotRespo = await RequestToBot(options.followup_key || options.message, {
+    roomid: options.roomid,
+    isFollow_up: typeof options.followup_key !== 'undefined',
   });
   const lang = BotRespo.extra.languageCode.toUpperCase();
   CreateNewChatRecord(
@@ -188,29 +190,28 @@ export async function SendMessageToBot(
         msg_from_name: 'BOT',
         bot: {
           output: BotRespo.response,
-          results1: BotRespo.extra.results,
           results: BotRespo.extra.results,
+          nudgeOptions:BotRespo.nudgeOptions,
         },
       },
       CHCreatedOn: GetTimeStamp(),
-      CHRoomID: roomid,
+      CHRoomID: options.roomid,
       Message: BotRespo.response[lang]
         ? BotRespo.response[lang].text[0]
         : BotRespo.response.EN.text[0],
       MessageFrom: 'BOT',
     },
-    roomid,
+    options.roomid,
     true,
     0
   );
 }
 export async function CreateNewBotSession(
-  uname: string,
   roomid: string,
   UniqueID: string,
   lang?: SupportedLanguage
 ) {
-  const BotRespo = await RequestToBot('Hello', {
+  const BotRespo = await DeviceSyncCallForBot({
     roomid,
     lang,
   });
@@ -226,23 +227,6 @@ export async function CreateNewBotSession(
   const db = await DbPool.get_connection();
   try {
     await InsertUpdateRoom(RoomEntry);
-    const p = CreateNewChatRecord(
-      {
-        ChatHistoryId: uuid(),
-        CHAttributes: {
-          reason: 'Chat ses init',
-          msg_from_name: uname,
-        },
-        CHCreatedOn: GetTimeStamp(),
-        CHRoomID: roomid,
-        Message: 'Hello',
-        MessageFrom: 'USER',
-      },
-      roomid,
-      true,
-      100,
-      db
-    );
     const p1 = CreateNewChatRecord(
       {
         ChatHistoryId: BotRespo.extra.MessageId,
@@ -250,7 +234,6 @@ export async function CreateNewBotSession(
           msg_from_name: 'BOT',
           bot: {
             output: BotRespo.response,
-            results1: BotRespo.extra.results,
             results: BotRespo.extra.results,
           },
         },
@@ -275,7 +258,7 @@ export async function CreateNewBotSession(
       },
       db
     );
-    await Promise.all([p, p1, p2]);
+    await Promise.all([p1, p2]);
     db.release();
   } catch (error) {
     db.release();
@@ -309,6 +292,9 @@ export async function GetChatHistory(req?: ChatHistoruReqServer) {
         typeof req.stream === 'number'
       ) {
         db.limit(req.limit, (req.stream - 1) * req.limit);
+      }
+      if (req.order_by_time) {
+        db.order_by('ch.CHCreatedOn', req.order_by_time);
       }
     }
     return db.get('ChatHistory as ch').finally(() => {

@@ -6,7 +6,12 @@ import {
 } from '@yana-exhchange/interface';
 import { Server } from 'socket.io';
 import { v4 as uuid } from 'uuid';
-import { ChangeLang, LikeDisLikeMessage } from './BotChat';
+import {
+  ChangeLang,
+  DeviceSyncCallForBot,
+  GetDisLikeOptions,
+  LikeDisLikeMessage,
+} from './BotChat';
 import {
   CreateNewBotSession,
   GetChatHistory,
@@ -48,7 +53,6 @@ export function AddUserNameSpace(server: Server) {
         const roomid = uuid();
         socket.join(roomid);
         const a = await CreateNewBotSession(
-          socket.user_data.user.ChatUsersAttributes.name,
           roomid,
           user.UniqueID,
           socket.handshake.auth.lang
@@ -68,6 +72,7 @@ export function AddUserNameSpace(server: Server) {
     next();
   });
   server.of('users').on('connection', (s: SocketioSocket) => {
+    let Userlang = s.handshake.auth.lang;
     s.on(
       'message',
       async (a: {
@@ -78,13 +83,11 @@ export function AddUserNameSpace(server: Server) {
           const roomid = s.user_data.room.RoomID;
           const lang = a.data['lang-change'].lang;
           await ChangeLang(roomid, lang);
+          Userlang = lang;
           s.emit('lang-chang', {
             success: true,
           });
-        } else if (
-          a.type === 'like-dislike' &&
-          typeof a.data['like-dislike'] !== 'undefined'
-        ) {
+        } else if (a.type === 'like-dislike') {
           const b = await LikeDisLikeMessage(
             a.data['like-dislike'].likeOrDislike,
             a.data['like-dislike'].reasonsSelected,
@@ -96,20 +99,21 @@ export function AddUserNameSpace(server: Server) {
               messageId: a.data['like-dislike'].messageId,
             })
           );
-        } else if (
-          a.type === 'send-message' &&
-          typeof a.data['send-message'] !== 'undefined'
-        ) {
+        } else if (a.type === 'follow-up') {
+          SendMessageToBot({
+            message: a.data['follow-up'].follow_up_value,
+            roomid: s.user_data.room.RoomID,
+            uname: s.user_data.user.ChatUsersAttributes.name,
+            followup_key: a.data['follow-up'].follow_up_key,
+          });
+        } else if (a.type === 'send-message') {
           //TODO: Check Room Status Here Then Send To Bot
-          SendMessageToBot(
-            a.data['send-message'].message,
-            s.user_data.room.RoomID,
-            s.user_data.user.ChatUsersAttributes.name
-          );
-        } else if (
-          a.type === 'chat-history' &&
-          typeof a.data['chat-history'] !== 'undefined'
-        ) {
+          SendMessageToBot({
+            message: a.data['send-message'].message,
+            roomid: s.user_data.room.RoomID,
+            uname: s.user_data.user.ChatUsersAttributes.name,
+          });
+        } else if (a.type === 'chat-history') {
           //TODO: Check Room Status Here Then Send To Bot
           const roomid = s.user_data.room.RoomID;
           s.emit(
@@ -122,6 +126,25 @@ export function AddUserNameSpace(server: Server) {
                 a.data['chat-history']
               )
             )
+          );
+        } else if (a.type === 'device-sync') {
+          const roomid = s.user_data.room.RoomID;
+          const BotRespo = await DeviceSyncCallForBot(
+            {
+              roomid,
+              lang: Userlang,
+            },
+            true
+          );
+          s.emit('device-sync', BotRespo);
+        } else if (a.type === 'get-dislike-options') {
+          const roomid = s.user_data.room.RoomID;
+          s.emit(
+            'get-dislike-options',
+            await GetDisLikeOptions({
+              roomid,
+              lang: Userlang,
+            })
           );
         }
       }

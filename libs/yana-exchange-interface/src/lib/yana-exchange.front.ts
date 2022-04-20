@@ -1,5 +1,11 @@
 import { SupportedLanguage } from './yana-exchange-interface';
-import { LikeDisLikeReqObject } from './yana-exchange.bot.interface';
+import {
+  BotAPIResponse,
+  BotApiRespoNudgeOptions,
+  DisLikeOptionsRespo,
+  LikeDisLikeReqObject,
+  Output,
+} from './yana-exchange.bot.interface';
 import { ChatHistoryUncheckedCreateInput } from './yana-exchange.history.interface';
 
 export type ServerRespoEvents =
@@ -7,9 +13,11 @@ export type ServerRespoEvents =
   | 'connect'
   | 'disconnect'
   | 'chat-history'
+  | 'device-sync'
+  | 'get-dislike-options'
   | 'like-dislike'
   | 'NewMessage';
-interface LangChangedRespo {
+export interface LangChangedRespo {
   success: true;
 }
 export interface LikeDisLikeOfResponseFromServer {
@@ -24,6 +32,15 @@ export type ServerResponseData<T> = T extends 'lang-chang'
   ? void
   : T extends 'like-dislike'
   ? void
+  : T extends 'get-dislike-options'
+  ? DisLikeOptionsRespo
+  : T extends 'device-sync'
+  ? {
+      nudgeOptions: BotApiRespoNudgeOptions[];
+      bot_id: string;
+      response: Output;
+      extra: BotAPIResponse;
+    }
   : T extends 'chat-history'
   ? ChatHistoryUncheckedCreateInput[]
   : T extends 'NewMessage'
@@ -54,15 +71,23 @@ export interface ChatHistoruReq {
   get_all: boolean;
   stream?: number;
   limit?: number;
+  order_by_time?: 'asc' | 'desc';
 }
 export type TypesForSendingRequestToSever =
   | 'lang-change'
+  | 'follow-up'
+  | 'device-sync'
+  | 'get-dislike-options'
   | 'chat-history'
   | 'send-message'
   | 'like-dislike';
 export interface ExtraDataForSendingRequestToSever {
   'lang-change'?: {
     lang: SupportedLanguage;
+  };
+  'follow-up'?: {
+    follow_up_key: string;
+    follow_up_value: string;
   };
   'chat-history'?: ChatHistoruReq;
   'like-dislike'?: LikeDisLikeReqObject;

@@ -1,6 +1,6 @@
 # yana-exchange-frontend-sdk
 
-This library was generated with [Nx](https://nx.dev).
+<h3>Getting Started With</h3>
 
 ## Building
 

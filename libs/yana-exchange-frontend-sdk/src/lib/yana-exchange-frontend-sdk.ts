@@ -13,14 +13,7 @@ import {
   YanaSdkInitOptions,
 } from '@yana-exhchange/interface';
 import { Socket, io as ConnectToRemoteSocket } from 'socket.io-client';
-import {
-  filter,
-  firstValueFrom,
-  map,
-  Observable,
-  raceWith,
-  Subject,
-} from 'rxjs';
+import { filter, firstValueFrom, map, Observable, Subject } from 'rxjs';
 /**
  *
  * @param ApiUrl Connection Url to Connect to Yana Exchange
@@ -106,6 +99,82 @@ export class YanaExchange {
     const a = localStorage.getItem('yana_exchange_auth');
     return a === null ? {} : JSON.parse(a);
   }
+
+  /**
+   *
+   * @param follow_up_key Selected Followup Key From result
+   * @param follow_up_value Selected Followup Value From Result
+   */
+  MakeFollowupReq(follow_up_key: string, follow_up_value: string) {
+    this.SendMessagesServer('follow-up', {
+      'follow-up': {
+        follow_up_key,
+        follow_up_value,
+      },
+    });
+  }
+  /**
+   * API ID 9 Calling Device Sync
+   */
+  CallDeviceSync(): Promise<ServerResponseData<'device-sync'>> {
+    this.SendMessagesServer('device-sync', {});
+    return firstValueFrom(
+      this.ResponseSubject.pipe(
+        filter((a) => a.event === 'device-sync'),
+        map((a) => a.data)
+      )
+    );
+  }
+  /**
+   * Get Option To show to user whem they dislike any messages
+   */
+  GetDisLikeOptions(): Promise<ServerResponseData<'get-dislike-options'>> {
+    this.SendMessagesServer('get-dislike-options', {});
+    return firstValueFrom(
+      this.ResponseSubject.pipe(
+        filter((a) => a.event === 'get-dislike-options'),
+        map((a) => a.data)
+      )
+    );
+  }
+  /**
+   *
+   * @param reqData ClientToServerReqData Params Require To Like Or Dislike Any Messages
+   * @returns void
+   */
+  SendLikeDislikeForMessage(
+    reqData: ClientToServerReqData<'like-dislike'>
+  ): Promise<ServerResponseData<'like-dislike'>> {
+    this.SendMessagesServer('like-dislike', {
+      'like-dislike': {
+        likeOrDislike: reqData.likeOrDislike === true ? '1' : '2',
+        messageId: reqData.messageId,
+        reasonsSelected: reqData.reasonsSelected,
+      },
+    });
+    return firstValueFrom(
+      this.ResponseSubject.pipe(
+        filter((a) => a.event === 'like-dislike'),
+        map((a) => a.data)
+      )
+    );
+  }
+  /**
+   *
+   * @param message string Text Message To Send To Server
+   */
+  SendTextMessage(message: string) {
+    this.SendMessagesServer('send-message', {
+      'send-message': {
+        message,
+      },
+    });
+  }
+  /**
+   * @param reqType
+   * @param reqData
+   */
+
   SendMessage<T extends ClientToServerReq>(
     reqType: ClientToServerReq,
     reqData: ClientToServerReqData<T>

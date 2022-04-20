@@ -2,11 +2,15 @@
 import {
   BotApiReq,
   BotAPIResponse,
+  BotDislikeOptionsReq,
   BotLikeDislikeReq,
+  LikeDisLikeReasonRespo,
   LikeDisLikeRespo,
   SupportedLanguage,
 } from '@yana-exhchange/interface';
 import * as ax from 'axios';
+import { CreateNewChatRecord } from './Database';
+import { GetTimeStamp } from './Genralunctions';
 export const BotIdWithContext: {
   [key: string]: BotApiReq;
 } = {};
@@ -17,6 +21,7 @@ export async function RequestToBot(
     lang?: SupportedLanguage;
     roomid: string;
     user_id?: string;
+    isFollow_up?: boolean;
   }
 ) {
   const APIREQ: BotApiReq =
@@ -39,8 +44,9 @@ export async function RequestToBot(
       applicationId: '83',
     } as any);
   APIREQ.text = text;
+  APIREQ.apiId = options.isFollow_up ? '8' : '1';
   return ax.default
-    .post<BotAPIResponse, {data:BotAPIResponse}, BotApiReq>(
+    .post<BotAPIResponse, { data: BotAPIResponse }, BotApiReq>(
       'https://yanademo-orchestrator.yanaimpl.com/',
       APIREQ
     )
@@ -50,7 +56,79 @@ export async function RequestToBot(
         bot_id: a.data.context.bot_conversation_id,
         response: a.data.output,
         extra: a.data,
+        nudgeOptions: a.data.nudgeOptions,
       };
+    });
+}
+export async function DeviceSyncCallForBot(
+  options: {
+    lang: SupportedLanguage;
+    roomid: string;
+  },
+  AddToDatabase = false
+) {
+  const cont: any = (await GetBotContext(options.roomid)) || {};
+  const APIREQ: BotApiReq = Object.assign(cont, {
+    languageCode: options.lang,
+    apiId: '9',
+  });
+  return ax.default
+    .post<BotAPIResponse, { data: BotAPIResponse }, BotApiReq>(
+      'https://yanademo-orchestrator.yanaimpl.com/',
+      APIREQ
+    )
+    .then((a) => {
+      SetBotContext(options.roomid, a.data);
+      const BotRespo = {
+        bot_id: a.data.context.bot_conversation_id,
+        response: a.data.output,
+        extra: a.data,
+      };
+      if (AddToDatabase) {
+        CreateNewChatRecord(
+          {
+            ChatHistoryId: BotRespo.extra.MessageId,
+            CHAttributes: {
+              msg_from_name: 'BOT',
+              bot: {
+                output: BotRespo.response,
+                results: BotRespo.extra.results,
+              },
+            },
+            CHCreatedOn: GetTimeStamp(),
+            CHRoomID: options.roomid,
+            Message: BotRespo.response[options.lang]
+              ? BotRespo.response[options.lang].text[0]
+              : BotRespo.response.EN.text[0],
+            MessageFrom: 'BOT',
+          },
+          options.roomid,
+          true,
+          0
+        );
+      }
+      return BotRespo;
+    });
+}
+export async function GetDisLikeOptions(options: {
+  lang: SupportedLanguage;
+  roomid: string;
+}) {
+  const cont: any = (await GetBotContext(options.roomid)) || {};
+  const APIREQ: BotDislikeOptionsReq = Object.assign({}, cont, {
+    languageCode: options.lang,
+    apiId: '6',
+  });
+  APIREQ.getLikeOrDislikeReasons = {
+    likeOrDislike: '2',
+  };
+  return ax.default
+    .post<LikeDisLikeReasonRespo, { data: LikeDisLikeReasonRespo }, BotApiReq>(
+      'https://yanademo-orchestrator.yanaimpl.com/',
+      APIREQ
+    )
+    .then((a) => {
+      return a.data.getLikeOrDislikeReasonsResponse;
     });
 }
 export async function LikeDisLikeMessage(

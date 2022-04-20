@@ -1,4 +1,8 @@
-import { Output, Results } from './yana-exchange.bot.interface';
+import {
+  BotApiRespoNudgeOptions,
+  Output,
+  Results,
+} from './yana-exchange.bot.interface';
 
 export interface ChatHistory {
   ChatHistoryId: number;
@@ -13,8 +17,8 @@ export interface CHAttributes {
   msg_from_name?: string;
   bot?: {
     output: Output;
+    nudgeOptions?: BotApiRespoNudgeOptions[];
     results: Results;
-    results1: Results;
   };
 }
 
