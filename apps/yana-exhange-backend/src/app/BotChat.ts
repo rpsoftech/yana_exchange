@@ -7,11 +7,14 @@ import {
   BotLikeDislikeReq,
   LikeDisLikeReasonRespo,
   LikeDisLikeRespo,
+  ProcessAgentInterface,
+  ProcessAgentResponse,
+  ProcessParams,
   SupportedLanguage,
+  SupportedSources,
 } from '@yana-exhchange/interface';
 import * as ax from 'axios';
 import { CreateNewChatRecord } from './Database';
-import { DefaultVatiableForBotRquest } from './Default.variable';
 import { GetTimeStamp } from './Genralunctions';
 export const BotIdWithContext: {
   [key: string]: BotApiReq;
@@ -44,6 +47,28 @@ export async function RequestToBot(
         bot_id: a.data.context.bot_conversation_id,
         response: a.data.output,
         extra: a.data,
+      };
+    });
+}
+export async function ProcessAgentBotAPi(
+  options: {
+    processParams?: ProcessParams;
+    processAgent: ProcessAgentInterface;
+  },
+  roomid: string
+): Promise<ProcessAgentResponse> {
+  const APIREQ: BotApiReq = Object.assign(await GetBotContext(roomid), options);
+  APIREQ.apiId = '5';
+  return ax.default
+    .post<LikeDisLikeReasonRespo, { data: LikeDisLikeReasonRespo }, BotApiReq>(
+      'https://yanademo-orchestrator.yanaimpl.com/',
+      APIREQ
+    )
+    .then((a) => {
+      return {
+        MessageId: a.data.MessageId,
+        processAgent: a.data.processAgent,
+        processParams: a.data.processParams,
       };
     });
 }
@@ -124,14 +149,19 @@ export async function GetDisLikeOptions(options: {
 export async function LikeDisLikeMessage(
   like_dislike: string,
   reasonsSelected: string[] = [],
-  messageId: string
+  messageId: string,
+  options: {
+    lang: SupportedLanguage;
+    source: SupportedSources;
+    applicationId: string;
+  }
 ) {
   const a: BotLikeDislikeReq = {
     apiId: '7',
     personID: '',
-    languageCode: 'en',
-    source: 'webapp',
-    applicationId: DefaultVatiableForBotRquest.applicationId,
+    languageCode: options.lang.toLowerCase(),
+    source: options.source,
+    applicationId: options.applicationId,
     updateLikeOrDislike: {
       likeOrDislike: like_dislike.toString() as any,
       reasonsSelected: reasonsSelected,

@@ -1,6 +1,7 @@
 import { SupportedLanguage, SupportedSources } from './yana-exchange-interface';
+import { ProcessParams } from './yana-exchange.front';
 
-export interface AddtionalInputsFromUserInSession{
+export interface AddtionalInputsFromUserInSession {
   source?: SupportedSources;
   applicationId?: string;
   languageCode?: SupportedLanguage;
@@ -70,11 +71,11 @@ export interface LikeDisLikeReqObject {
 }
 export interface BotApiReq {
   text?: string;
-  apiId?: '1' | '7' | '4' | '9' | '8';
+  apiId?: '1' | '4' | '5' | '6' | '7' | '8' | '9';
   context?: BotContext;
   userId?: string;
   personID?: string;
-  addtnlInputParams?:AddtnlInputParams;
+  addtnlInputParams?: AddtnlInputParams;
   userAcadPlan?: any;
   additionalPersistentInformation?: any;
   userDisplayName?: string;
@@ -123,6 +124,7 @@ export interface BotAPIResponse {
   applicationStatus?: string;
   decisionStatus?: number;
   processAgent?: ProcessAgentInterface;
+  processParams?: ProcessParams;
   results?: Results;
   context?: BotContext;
   responseCategory?: string;
@@ -210,7 +212,6 @@ export interface LanguageOutput {
   voice: string;
   voiceonly: string;
 }
-
 
 export interface ProcessAgentInterface {
   processAgentId: string;

@@ -11,6 +11,7 @@ import {
   DeviceSyncCallForBot,
   GetDisLikeOptions,
   LikeDisLikeMessage,
+  ProcessAgentBotAPi,
   SetBotContext,
 } from './BotChat';
 import {
@@ -80,6 +81,8 @@ export function AddUserNameSpace(server: Server) {
   });
   server.of('users').on('connection', (s: SocketioSocket) => {
     let Userlang = s.handshake.auth.lang;
+    const UserSource = s.handshake.auth.source;
+    const UserApplicationID = s.handshake.auth.applicationId;
     s.on(
       'message',
       async (a: {
@@ -98,7 +101,12 @@ export function AddUserNameSpace(server: Server) {
           const b = await LikeDisLikeMessage(
             a.data['like-dislike'].likeOrDislike,
             a.data['like-dislike'].reasonsSelected,
-            a.data['like-dislike'].messageId
+            a.data['like-dislike'].messageId,
+            {
+              lang: Userlang,
+              source: UserSource,
+              applicationId: UserApplicationID,
+            }
           );
           s.emit(
             'like-dislike',
@@ -158,6 +166,12 @@ export function AddUserNameSpace(server: Server) {
               roomid,
               lang: Userlang,
             })
+          );
+        } else if (a.type === 'process-agent') {
+          const roomid = s.user_data.room.RoomID;
+          s.emit(
+            'process-agent',
+            await ProcessAgentBotAPi(a.data['process-agent'], roomid)
           );
         }
       }

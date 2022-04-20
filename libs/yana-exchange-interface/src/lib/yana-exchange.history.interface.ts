@@ -4,6 +4,7 @@ import {
   ProcessAgentInterface,
   Results,
 } from './yana-exchange.bot.interface';
+import { ProcessParams } from './yana-exchange.front';
 
 export interface ChatHistory {
   ChatHistoryId: number;
@@ -13,15 +14,17 @@ export interface ChatHistory {
   CHAttributes: CHAttributes;
   CHCreatedOn: number;
 }
+export interface ChatHistoryAttributesBotObject {
+  processParams?: ProcessParams;
+  processAgent: ProcessAgentInterface;
+  output: Output;
+  nudgeOptions?: BotApiRespoNudgeOptions[];
+  results: Results;
+}
 export interface CHAttributes {
   reason?: string;
   msg_from_name?: string;
-  bot?: {
-    processAgent: ProcessAgentInterface;
-    output: Output;
-    nudgeOptions?: BotApiRespoNudgeOptions[];
-    results: Results;
-  };
+  bot?: ChatHistoryAttributesBotObject;
 }
 export interface ChatHistoryUncheckedCreateInput {
   ChatHistoryId: string;
