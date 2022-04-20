@@ -16,12 +16,18 @@ export interface CHAttributes {
   reason?: string;
   msg_from_name?: string;
   bot?: {
+    processAgent: ProcessAgentInterface;
     output: Output;
     nudgeOptions?: BotApiRespoNudgeOptions[];
     results: Results;
   };
 }
 
+export interface ProcessAgentInterface {
+  processAgentId: string;
+  processId: string;
+  processAgentTxnId: string;
+}
 export interface ChatHistoryUncheckedCreateInput {
   ChatHistoryId: string;
   CHRoomID: string;

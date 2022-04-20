@@ -10,6 +10,7 @@ import {
 } from '@yana-exhchange/interface';
 import * as ax from 'axios';
 import { CreateNewChatRecord } from './Database';
+import { DefaultVatiableForBotRquest } from './Default.variable';
 import { GetTimeStamp } from './Genralunctions';
 export const BotIdWithContext: {
   [key: string]: BotApiReq;
@@ -31,17 +32,11 @@ export async function RequestToBot(
       apiId: '1',
       context: await GetBotContext(options.roomid),
       userId: options.user_id ? options.user_id : '0000',
-      personID: '',
-      addtnlInputParams: {
-        latitude: '',
-        longitude: '',
-      },
-      userAcadPlan: {},
       additionalPersistentInformation: {},
       userDisplayName: '',
       languageCode: options.lang ? options.lang.toLowerCase() : 'en',
       source: 'webapp',
-      applicationId: '83',
+      applicationId: DefaultVatiableForBotRquest.applicationId,
     } as any);
   APIREQ.text = text;
   APIREQ.apiId = options.isFollow_up ? '8' : '1';
@@ -141,7 +136,7 @@ export async function LikeDisLikeMessage(
     personID: '',
     languageCode: 'en',
     source: 'webapp',
-    applicationId: '83',
+    applicationId: DefaultVatiableForBotRquest.applicationId,
     updateLikeOrDislike: {
       likeOrDislike: like_dislike.toString() as any,
       reasonsSelected: reasonsSelected,

@@ -13,6 +13,7 @@ export type ServerRespoEvents =
   | 'connect'
   | 'disconnect'
   | 'chat-history'
+  | 'user-login'
   | 'device-sync'
   | 'get-dislike-options'
   | 'like-dislike'
