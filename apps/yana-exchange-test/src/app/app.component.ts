@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { InitSdk } from '@yana-exchange/frontend-sdk';
-
+declare const window:any;
 @Component({
   selector: 'yana-exchange-root',
   templateUrl: './app.component.html',
@@ -8,22 +8,19 @@ import { InitSdk } from '@yana-exchange/frontend-sdk';
 })
 export class AppComponent {
   constructor() {
-    const b = InitSdk('http://localhost:3101/users', {
+    const yanaexchangeObj = InitSdk('http://localhost:3101/users', {
       name: 'Keyur shah',
       language: 'EN',
     });
-    b.on('connect').subscribe(() => {
+    window.yanaexchangeObj = yanaexchangeObj;
+    yanaexchangeObj.on('connect').subscribe(() => {
       console.log('asihdiasodhoihasdho');
     });
-    b.GetChatHistory({
-      get_all:true
-    }).then(console.log);
-    b.on('NewMessage').subscribe(console.log);
-    setTimeout(() => {
-      b.CurrentLanguage = 'EN';
-      b.SendMessage('send-message', {
-        message: 'HEEEEELLLOOOO',
-      });
-    }, 5000);
+    yanaexchangeObj
+      .GetChatHistory({
+        get_all: true,
+      })
+      .then(console.log);
+    yanaexchangeObj.on('NewMessage').subscribe(console.log);
   }
 }

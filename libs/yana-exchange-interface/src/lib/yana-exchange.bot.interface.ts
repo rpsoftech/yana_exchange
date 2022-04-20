@@ -1,3 +1,5 @@
+import { SupportedLanguage } from './yana-exchange-interface';
+
 export interface BotReq {
   text: string;
   context: BotContext;
@@ -64,6 +66,11 @@ export interface DialogStack {
   dialog_node: string;
 }
 
+export interface BotDislikeOptionsReq extends BotApiReq {
+  getLikeOrDislikeReasons: {
+    likeOrDislike: '1' | '2';
+  };
+}
 export interface BotLikeDislikeReq extends BotApiReq {
   updateLikeOrDislike: LikeDisLikeReqObject;
 }
@@ -74,7 +81,7 @@ export interface LikeDisLikeReqObject {
 }
 export interface BotApiReq {
   text?: string;
-  apiId?: '1' | '7' | '4';
+  apiId?: '1' | '7' | '4' | '9';
   context?: BotContext;
   userId?: string;
   personID?: string;
@@ -92,6 +99,19 @@ export interface BotApiReq {
   // testMode: 'N',
   // inputmode: string,
   // sourceVersion: ' 2.10.0.1',
+}
+export interface DisLikeOptionsRespo {
+  likeOrDislike: 'Dislike' | 'Like';
+  selectOption: 'One' | 'Many';
+  language: {
+    [lang in SupportedLanguage]: string[];
+  };
+  textField: {
+    [lang in SupportedLanguage]: string[];
+  };
+}
+export interface LikeDisLikeReasonRespo extends BotAPIResponse {
+  getLikeOrDislikeReasonsResponse: DisLikeOptionsRespo;
 }
 export interface LikeDisLikeRespo extends BotAPIResponse {
   Status: string;

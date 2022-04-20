@@ -3,7 +3,7 @@ import { ChatUsers } from 'prisma_database';
 import { Server } from 'socket.io';
 import { Pool, QueryExec } from 'query-builder-mysql';
 import { environment } from '../environments/environment';
-import { RequestToBot } from './BotChat';
+import { DeviceSyncCallForBot, RequestToBot } from './BotChat';
 import { v4 as uuid } from 'uuid';
 import { GetTimeStamp } from './Genralunctions';
 import {
@@ -188,7 +188,6 @@ export async function SendMessageToBot(
         msg_from_name: 'BOT',
         bot: {
           output: BotRespo.response,
-          results1: BotRespo.extra.results,
           results: BotRespo.extra.results,
         },
       },
@@ -205,12 +204,11 @@ export async function SendMessageToBot(
   );
 }
 export async function CreateNewBotSession(
-  uname: string,
   roomid: string,
   UniqueID: string,
   lang?: SupportedLanguage
 ) {
-  const BotRespo = await RequestToBot('Hello', {
+  const BotRespo = await DeviceSyncCallForBot({
     roomid,
     lang,
   });
@@ -226,23 +224,6 @@ export async function CreateNewBotSession(
   const db = await DbPool.get_connection();
   try {
     await InsertUpdateRoom(RoomEntry);
-    const p = CreateNewChatRecord(
-      {
-        ChatHistoryId: uuid(),
-        CHAttributes: {
-          reason: 'Chat ses init',
-          msg_from_name: uname,
-        },
-        CHCreatedOn: GetTimeStamp(),
-        CHRoomID: roomid,
-        Message: 'Hello',
-        MessageFrom: 'USER',
-      },
-      roomid,
-      true,
-      100,
-      db
-    );
     const p1 = CreateNewChatRecord(
       {
         ChatHistoryId: BotRespo.extra.MessageId,
@@ -250,7 +231,6 @@ export async function CreateNewBotSession(
           msg_from_name: 'BOT',
           bot: {
             output: BotRespo.response,
-            results1: BotRespo.extra.results,
             results: BotRespo.extra.results,
           },
         },
@@ -275,7 +255,7 @@ export async function CreateNewBotSession(
       },
       db
     );
-    await Promise.all([p, p1, p2]);
+    await Promise.all([p1, p2]);
     db.release();
   } catch (error) {
     db.release();
