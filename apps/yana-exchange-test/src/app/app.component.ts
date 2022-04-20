@@ -18,6 +18,7 @@ export class AppComponent {
     });
     yanaexchangeObj
       .GetChatHistory({
+        order_by_time:'desc',
         get_all: true,
       })
       .then(console.log);

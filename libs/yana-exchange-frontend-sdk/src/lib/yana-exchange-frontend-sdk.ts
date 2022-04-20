@@ -101,6 +101,19 @@ export class YanaExchange {
   }
 
   /**
+   *
+   * @param follow_up_key Selected Followup Key From result
+   * @param follow_up_value Selected Followup Value From Result
+   */
+  MakeFollowupReq(follow_up_key: string, follow_up_value: string) {
+    this.SendMessagesServer('follow-up', {
+      'follow-up': {
+        follow_up_key,
+        follow_up_value,
+      },
+    });
+  }
+  /**
    * API ID 9 Calling Device Sync
    */
   CallDeviceSync(): Promise<ServerResponseData<'device-sync'>> {
@@ -147,7 +160,7 @@ export class YanaExchange {
     );
   }
   /**
-   * 
+   *
    * @param message string Text Message To Send To Server
    */
   SendTextMessage(message: string) {

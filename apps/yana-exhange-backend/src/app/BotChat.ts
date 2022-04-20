@@ -21,6 +21,7 @@ export async function RequestToBot(
     lang?: SupportedLanguage;
     roomid: string;
     user_id?: string;
+    isFollow_up?: boolean;
   }
 ) {
   const APIREQ: BotApiReq =
@@ -43,7 +44,7 @@ export async function RequestToBot(
       applicationId: '83',
     } as any);
   APIREQ.text = text;
-  APIREQ.apiId = '1';
+  APIREQ.apiId = options.isFollow_up ? '8' : '1';
   return ax.default
     .post<BotAPIResponse, { data: BotAPIResponse }, BotApiReq>(
       'https://yanademo-orchestrator.yanaimpl.com/',
@@ -55,6 +56,7 @@ export async function RequestToBot(
         bot_id: a.data.context.bot_conversation_id,
         response: a.data.output,
         extra: a.data,
+        nudgeOptions: a.data.nudgeOptions,
       };
     });
 }

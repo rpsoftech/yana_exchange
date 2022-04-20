@@ -99,13 +99,20 @@ export function AddUserNameSpace(server: Server) {
               messageId: a.data['like-dislike'].messageId,
             })
           );
+        } else if (a.type === 'follow-up') {
+          SendMessageToBot({
+            message: a.data['follow-up'].follow_up_value,
+            roomid: s.user_data.room.RoomID,
+            uname: s.user_data.user.ChatUsersAttributes.name,
+            followup_key: a.data['follow-up'].follow_up_key,
+          });
         } else if (a.type === 'send-message') {
           //TODO: Check Room Status Here Then Send To Bot
-          SendMessageToBot(
-            a.data['send-message'].message,
-            s.user_data.room.RoomID,
-            s.user_data.user.ChatUsersAttributes.name
-          );
+          SendMessageToBot({
+            message: a.data['send-message'].message,
+            roomid: s.user_data.room.RoomID,
+            uname: s.user_data.user.ChatUsersAttributes.name,
+          });
         } else if (a.type === 'chat-history') {
           //TODO: Check Room Status Here Then Send To Bot
           const roomid = s.user_data.room.RoomID;

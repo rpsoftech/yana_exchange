@@ -1,0 +1,19 @@
+{
+  "hosting": {
+    "public": "docs/yana-exchange-frontend-sdk",
+    "predeploy":[
+      "npx nx run yana-exchange-frontend-sdk:docs"
+    ],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

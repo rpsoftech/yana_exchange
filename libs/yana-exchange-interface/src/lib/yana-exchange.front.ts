@@ -1,6 +1,7 @@
 import { SupportedLanguage } from './yana-exchange-interface';
 import {
   BotAPIResponse,
+  BotApiRespoNudgeOptions,
   DisLikeOptionsRespo,
   LikeDisLikeReqObject,
   Output,
@@ -35,6 +36,7 @@ export type ServerResponseData<T> = T extends 'lang-chang'
   ? DisLikeOptionsRespo
   : T extends 'device-sync'
   ? {
+      nudgeOptions: BotApiRespoNudgeOptions[];
       bot_id: string;
       response: Output;
       extra: BotAPIResponse;
@@ -69,9 +71,11 @@ export interface ChatHistoruReq {
   get_all: boolean;
   stream?: number;
   limit?: number;
+  order_by_time?: 'asc' | 'desc';
 }
 export type TypesForSendingRequestToSever =
   | 'lang-change'
+  | 'follow-up'
   | 'device-sync'
   | 'get-dislike-options'
   | 'chat-history'
@@ -80,6 +84,10 @@ export type TypesForSendingRequestToSever =
 export interface ExtraDataForSendingRequestToSever {
   'lang-change'?: {
     lang: SupportedLanguage;
+  };
+  'follow-up'?: {
+    follow_up_key: string;
+    follow_up_value: string;
   };
   'chat-history'?: ChatHistoruReq;
   'like-dislike'?: LikeDisLikeReqObject;

@@ -157,28 +157,30 @@ export async function CreateNewChatRecord(
     }
   });
 }
-export async function SendMessageToBot(
-  message: string,
-  roomid: string,
-  uname: string
-) {
+export async function SendMessageToBot(options: {
+  message: string;
+  roomid: string;
+  uname: string;
+  followup_key?: string;
+}) {
   CreateNewChatRecord(
     {
       ChatHistoryId: uuid(),
       CHAttributes: {
-        msg_from_name: uname,
+        msg_from_name: options.uname,
       },
       CHCreatedOn: GetTimeStamp(),
-      CHRoomID: roomid,
-      Message: message,
+      CHRoomID: options.roomid,
+      Message: options.message,
       MessageFrom: 'USER',
     },
-    roomid,
+    options.roomid,
     true,
     0
   );
-  const BotRespo = await RequestToBot(message, {
-    roomid,
+  const BotRespo = await RequestToBot(options.followup_key || options.message, {
+    roomid: options.roomid,
+    isFollow_up: typeof options.followup_key !== 'undefined',
   });
   const lang = BotRespo.extra.languageCode.toUpperCase();
   CreateNewChatRecord(
@@ -189,16 +191,17 @@ export async function SendMessageToBot(
         bot: {
           output: BotRespo.response,
           results: BotRespo.extra.results,
+          nudgeOptions:BotRespo.nudgeOptions,
         },
       },
       CHCreatedOn: GetTimeStamp(),
-      CHRoomID: roomid,
+      CHRoomID: options.roomid,
       Message: BotRespo.response[lang]
         ? BotRespo.response[lang].text[0]
         : BotRespo.response.EN.text[0],
       MessageFrom: 'BOT',
     },
-    roomid,
+    options.roomid,
     true,
     0
   );
@@ -289,6 +292,9 @@ export async function GetChatHistory(req?: ChatHistoruReqServer) {
         typeof req.stream === 'number'
       ) {
         db.limit(req.limit, (req.stream - 1) * req.limit);
+      }
+      if (req.order_by_time) {
+        db.order_by('ch.CHCreatedOn', req.order_by_time);
       }
     }
     return db.get('ChatHistory as ch').finally(() => {

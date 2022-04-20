@@ -81,7 +81,7 @@ export interface LikeDisLikeReqObject {
 }
 export interface BotApiReq {
   text?: string;
-  apiId?: '1' | '7' | '4' | '9';
+  apiId?: '1' | '7' | '4' | '9' | '8';
   context?: BotContext;
   userId?: string;
   personID?: string;
@@ -116,6 +116,10 @@ export interface LikeDisLikeReasonRespo extends BotAPIResponse {
 export interface LikeDisLikeRespo extends BotAPIResponse {
   Status: string;
 }
+export interface BotApiRespoNudgeOptions {
+  key: string;
+  value: string;
+}
 export interface BotAPIResponse {
   output?: Output;
   additionalPersistentInformation?: any;
@@ -126,6 +130,7 @@ export interface BotAPIResponse {
   languageCode?: string;
   applicationId?: string;
   source?: string;
+  nudgeOptions?: BotApiRespoNudgeOptions[];
   intents?: BotAPIResponseIntent[];
   entities?: any[];
   action?: string;
