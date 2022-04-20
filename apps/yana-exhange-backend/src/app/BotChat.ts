@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  AddtionalInputsFromUserInSession,
   BotApiReq,
   BotAPIResponse,
   BotDislikeOptionsReq,
@@ -21,24 +22,16 @@ export async function RequestToBot(
   options: {
     lang?: SupportedLanguage;
     roomid: string;
-    user_id?: string;
     isFollow_up?: boolean;
-  }
+  },
+  extra: AddtionalInputsFromUserInSession
 ) {
-  const APIREQ: BotApiReq =
-    (await GetBotContext(options.roomid)) ||
-    ({
-      text: text,
-      apiId: '1',
-      context: await GetBotContext(options.roomid),
-      userId: options.user_id ? options.user_id : '0000',
-      additionalPersistentInformation: {},
-      userDisplayName: '',
-      languageCode: options.lang ? options.lang.toLowerCase() : 'en',
-      source: 'webapp',
-      applicationId: DefaultVatiableForBotRquest.applicationId,
-    } as any);
+  const APIREQ: BotApiReq = Object.assign(
+    await GetBotContext(options.roomid),
+    extra
+  );
   APIREQ.text = text;
+  APIREQ.languageCode = options.lang || APIREQ.languageCode;
   APIREQ.apiId = options.isFollow_up ? '8' : '1';
   return ax.default
     .post<BotAPIResponse, { data: BotAPIResponse }, BotApiReq>(
@@ -59,10 +52,11 @@ export async function DeviceSyncCallForBot(
     lang: SupportedLanguage;
     roomid: string;
   },
-  AddToDatabase = false
+  AddToDatabase = false,
+  extra: AddtionalInputsFromUserInSession = {}
 ) {
   const cont: any = (await GetBotContext(options.roomid)) || {};
-  const APIREQ: BotApiReq = Object.assign(cont, {
+  const APIREQ: BotApiReq = Object.assign(cont, extra, {
     languageCode: options.lang,
     apiId: '9',
   });

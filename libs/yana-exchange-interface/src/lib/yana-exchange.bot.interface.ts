@@ -1,21 +1,10 @@
-import { SupportedLanguage } from './yana-exchange-interface';
+import { SupportedLanguage, SupportedSources } from './yana-exchange-interface';
 
-export interface BotReq {
-  text: string;
-  context: BotContext;
-  userId: string;
-  personID: string;
-  addtnlInputParams: AddtnlInputParams;
-  userDisplayName: string;
-  messageId: string;
-  languageCode: string;
-  source: string;
-  applicationId: string;
-  testMode: string;
-  inputmode: string;
-  sourceVersion: string;
+export interface AddtionalInputsFromUserInSession{
+  source?: SupportedSources;
+  applicationId?: string;
+  languageCode?: SupportedLanguage;
 }
-
 export interface AddtnlInputParams {
   latitude: string;
   longitude: string;
@@ -85,10 +74,7 @@ export interface BotApiReq {
   context?: BotContext;
   userId?: string;
   personID?: string;
-  addtnlInputParams?: {
-    latitude: string;
-    longitude: string;
-  };
+  addtnlInputParams?:AddtnlInputParams;
   userAcadPlan?: any;
   additionalPersistentInformation?: any;
   userDisplayName?: string;
@@ -96,9 +82,6 @@ export interface BotApiReq {
   languageCode: string;
   source?: string;
   applicationId?: string;
-  // testMode: 'N',
-  // inputmode: string,
-  // sourceVersion: ' 2.10.0.1',
 }
 export interface DisLikeOptionsRespo {
   likeOrDislike: 'Dislike' | 'Like';

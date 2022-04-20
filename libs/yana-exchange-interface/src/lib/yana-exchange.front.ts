@@ -1,5 +1,6 @@
 import { SupportedLanguage } from './yana-exchange-interface';
 import {
+  AddtionalInputsFromUserInSession,
   BotAPIResponse,
   BotApiRespoNudgeOptions,
   DisLikeOptionsRespo,
@@ -89,10 +90,12 @@ export interface ExtraDataForSendingRequestToSever {
   'follow-up'?: {
     follow_up_key: string;
     follow_up_value: string;
+    extra?: AddtionalInputsFromUserInSession;
   };
   'chat-history'?: ChatHistoruReq;
   'like-dislike'?: LikeDisLikeReqObject;
   'send-message'?: {
     message: string;
+    extra?: AddtionalInputsFromUserInSession;
   };
 }

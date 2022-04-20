@@ -6,6 +6,7 @@ import {
   ExtraDataForSendingRequestToSever,
   LikeDisLikeOfMessageToServer,
   SendMessageToServerReq,
+  SendTextMessageAdditionalInput,
   ServerRespoEvents,
   ServerResponseData,
   SupportedLanguage,
@@ -58,7 +59,9 @@ export class YanaExchange {
     this.io = ConnectToRemoteSocket(this.ApiUrl, {
       auth: Object.assign(
         {
+          applicationId: this.options.applicationId,
           lang: this.CurrentLanguage,
+          source: this.options.source,
         },
         this.GetAuthentication()
       ),
@@ -163,10 +166,14 @@ export class YanaExchange {
    *
    * @param message string Text Message To Send To Server
    */
-  SendTextMessage(message: string) {
+  SendTextMessage(
+    message: string,
+    additionalInputs: SendTextMessageAdditionalInput = {}
+  ) {
     this.SendMessagesServer('send-message', {
       'send-message': {
         message,
+        extra: additionalInputs,
       },
     });
   }
