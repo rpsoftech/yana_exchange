@@ -51,7 +51,6 @@ export async function RequestToBot(
         bot_id: a.data.context.bot_conversation_id,
         response: a.data.output,
         extra: a.data,
-        nudgeOptions: a.data.nudgeOptions,
       };
     });
 }
@@ -86,8 +85,10 @@ export async function DeviceSyncCallForBot(
             CHAttributes: {
               msg_from_name: 'BOT',
               bot: {
+                processAgent: BotRespo.extra.processAgent,
                 output: BotRespo.response,
                 results: BotRespo.extra.results,
+                nudgeOptions: a.data.nudgeOptions,
               },
             },
             CHCreatedOn: GetTimeStamp(),

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component } from '@angular/core';
 import { InitSdk } from '@yana-exchange/frontend-sdk';
 declare const window:any;

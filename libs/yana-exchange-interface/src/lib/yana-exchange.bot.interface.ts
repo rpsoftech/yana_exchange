@@ -139,7 +139,7 @@ export interface BotAPIResponse {
   responseStatus?: number;
   applicationStatus?: string;
   decisionStatus?: number;
-  processAgent?: ProcessAgent;
+  processAgent?: ProcessAgentInterface;
   results?: Results;
   context?: BotContext;
   responseCategory?: string;
@@ -228,10 +228,12 @@ export interface LanguageOutput {
   voiceonly: string;
 }
 
-export interface ProcessAgent {
+
+export interface ProcessAgentInterface {
+  processAgentId: string;
+  processId: string;
   processAgentTxnId: string;
 }
-
 export interface Results {
   objType: string;
   objects: ResultObject[];

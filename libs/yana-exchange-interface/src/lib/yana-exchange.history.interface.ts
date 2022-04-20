@@ -1,6 +1,7 @@
 import {
   BotApiRespoNudgeOptions,
   Output,
+  ProcessAgentInterface,
   Results,
 } from './yana-exchange.bot.interface';
 
@@ -21,12 +22,6 @@ export interface CHAttributes {
     nudgeOptions?: BotApiRespoNudgeOptions[];
     results: Results;
   };
-}
-
-export interface ProcessAgentInterface {
-  processAgentId: string;
-  processId: string;
-  processAgentTxnId: string;
 }
 export interface ChatHistoryUncheckedCreateInput {
   ChatHistoryId: string;

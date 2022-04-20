@@ -189,9 +189,10 @@ export async function SendMessageToBot(options: {
       CHAttributes: {
         msg_from_name: 'BOT',
         bot: {
+          processAgent: BotRespo.extra.processAgent,
           output: BotRespo.response,
           results: BotRespo.extra.results,
-          nudgeOptions:BotRespo.nudgeOptions,
+          nudgeOptions: BotRespo.extra.nudgeOptions,
         },
       },
       CHCreatedOn: GetTimeStamp(),
@@ -233,8 +234,10 @@ export async function CreateNewBotSession(
         CHAttributes: {
           msg_from_name: 'BOT',
           bot: {
+            processAgent: BotRespo.extra.processAgent,
             output: BotRespo.response,
             results: BotRespo.extra.results,
+            nudgeOptions: BotRespo.extra.nudgeOptions,
           },
         },
         CHCreatedOn: GetTimeStamp(),
