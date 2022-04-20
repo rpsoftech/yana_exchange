@@ -1,16 +1,16 @@
 import {
   ChatHistoruReq,
   ChatHistoryUncheckedCreateInput,
-  ClientToServerReq,
-  ClientToServerReqData,
   ExtraDataForSendingRequestToSever,
-  LikeDisLikeOfMessageToServer,
-  SendMessageToServerReq,
+  AddtionalInputsFromUserInSession,
   ServerRespoEvents,
   ServerResponseData,
   SupportedLanguage,
   TypesForSendingRequestToSever,
   YanaSdkInitOptions,
+  ClientToServerReqData,
+  ProcessAgentInterface,
+  ProcessParams,
 } from '@yana-exhchange/interface';
 import { Socket, io as ConnectToRemoteSocket } from 'socket.io-client';
 import { filter, firstValueFrom, map, Observable, Subject } from 'rxjs';
@@ -29,6 +29,9 @@ export function InitSdk(
 }
 
 export class YanaExchange {
+  /**
+   * Socket Io Connection Object
+   */
   io!: Socket;
   /**
    * Connection Status to Server
@@ -58,7 +61,9 @@ export class YanaExchange {
     this.io = ConnectToRemoteSocket(this.ApiUrl, {
       auth: Object.assign(
         {
+          applicationId: this.options.applicationId,
           lang: this.CurrentLanguage,
+          source: this.options.source,
         },
         this.GetAuthentication()
       ),
@@ -114,6 +119,29 @@ export class YanaExchange {
     });
   }
   /**
+   *
+   * @param processAgent
+   * @param processParams Key Value Pair For Process Agent
+   * @returns
+   */
+  MakeProcessAgentReq(
+    processAgent: ProcessAgentInterface,
+    processParams: ProcessParams
+  ): Promise<ServerResponseData<'process-agent'>> {
+    this.SendMessagesServer('process-agent', {
+      'process-agent': {
+        processAgent,
+        processParams,
+      },
+    });
+    return firstValueFrom(
+      this.ResponseSubject.pipe(
+        filter((a) => a.event === 'process-agent'),
+        map((a) => a.data)
+      )
+    );
+  }
+  /**
    * API ID 9 Calling Device Sync
    */
   CallDeviceSync(): Promise<ServerResponseData<'device-sync'>> {
@@ -125,6 +153,7 @@ export class YanaExchange {
       )
     );
   }
+
   /**
    * Get Option To show to user whem they dislike any messages
    */
@@ -162,39 +191,44 @@ export class YanaExchange {
   /**
    *
    * @param message string Text Message To Send To Server
+   * @param additionalInputs Additional Extra Inputs For Sending Message
    */
-  SendTextMessage(message: string) {
+  SendTextMessage(
+    message: string,
+    additionalInputs: AddtionalInputsFromUserInSession = {}
+  ) {
     this.SendMessagesServer('send-message', {
       'send-message': {
         message,
+        extra: additionalInputs,
       },
     });
   }
-  /**
-   * @param reqType
-   * @param reqData
-   */
+  // /**
+  //  * @param reqType
+  //  * @param reqData
+  //  */
 
-  SendMessage<T extends ClientToServerReq>(
-    reqType: ClientToServerReq,
-    reqData: ClientToServerReqData<T>
-  ) {
-    if (reqType === 'like-dislike') {
-      const d = reqData as LikeDisLikeOfMessageToServer;
-      this.SendMessagesServer('like-dislike', {
-        'like-dislike': {
-          likeOrDislike: d.likeOrDislike === true ? '1' : '2',
-          messageId: d.messageId,
-          reasonsSelected: d.reasonsSelected,
-        },
-      });
-    } else if (reqType === 'send-message') {
-      const d = reqData as SendMessageToServerReq;
-      this.SendMessagesServer('send-message', {
-        'send-message': d,
-      });
-    }
-  }
+  // SendMessage<T extends ClientToServerReq>(
+  //   reqType: ClientToServerReq,
+  //   reqData: ClientToServerReqData<T>
+  // ) {
+  //   if (reqType === 'like-dislike') {
+  //     const d = reqData as LikeDisLikeOfMessageToServer;
+  //     this.SendMessagesServer('like-dislike', {
+  //       'like-dislike': {
+  //         likeOrDislike: d.likeOrDislike === true ? '1' : '2',
+  //         messageId: d.messageId,
+  //         reasonsSelected: d.reasonsSelected,
+  //       },
+  //     });
+  //   } else if (reqType === 'send-message') {
+  //     const d = reqData as SendMessageToServerReq;
+  //     this.SendMessagesServer('send-message', {
+  //       'send-message': d,
+  //     });
+  //   }
+  // }
   GetChatHistory(
     req: ChatHistoruReq
   ): Promise<ChatHistoryUncheckedCreateInput[]> {
@@ -222,5 +256,11 @@ export class YanaExchange {
       filter((a) => a.event === event_name),
       map((a) => a.data)
     );
+  }
+  onAny<T extends ServerRespoEvents>(): Observable<{
+    event: ServerRespoEvents;
+    data?: ServerResponseData<T>;
+  }> {
+    return this.ResponseSubject.asObservable();
   }
 }

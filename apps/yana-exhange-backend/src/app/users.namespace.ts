@@ -11,6 +11,8 @@ import {
   DeviceSyncCallForBot,
   GetDisLikeOptions,
   LikeDisLikeMessage,
+  ProcessAgentBotAPi,
+  SetBotContext,
 } from './BotChat';
 import {
   CreateNewBotSession,
@@ -48,6 +50,10 @@ export function AddUserNameSpace(server: Server) {
         return;
       }
       const user = UsersDataArray[0];
+      const extraBotSessionInputs = {
+        applicationId: socket.handshake.auth.applicationId,
+        source: socket.handshake.auth.source,
+      };
       if (user.RoomStatus === null) {
         //TODO: Create New Seesion
         const roomid = uuid();
@@ -55,7 +61,8 @@ export function AddUserNameSpace(server: Server) {
         const a = await CreateNewBotSession(
           roomid,
           user.UniqueID,
-          socket.handshake.auth.lang
+          socket.handshake.auth.lang,
+          extraBotSessionInputs
         );
         socket.user_data.room = a.room;
       } else {
@@ -66,6 +73,7 @@ export function AddUserNameSpace(server: Server) {
           RoomAttributes: user.RoomAttributes,
           RoomCreatedOn: user.RoomCreatedOn,
         };
+        SetBotContext(user.RoomID, extraBotSessionInputs);
         socket.join(user.RoomID);
       }
     }
@@ -73,6 +81,8 @@ export function AddUserNameSpace(server: Server) {
   });
   server.of('users').on('connection', (s: SocketioSocket) => {
     let Userlang = s.handshake.auth.lang;
+    const UserSource = s.handshake.auth.source;
+    const UserApplicationID = s.handshake.auth.applicationId;
     s.on(
       'message',
       async (a: {
@@ -91,7 +101,12 @@ export function AddUserNameSpace(server: Server) {
           const b = await LikeDisLikeMessage(
             a.data['like-dislike'].likeOrDislike,
             a.data['like-dislike'].reasonsSelected,
-            a.data['like-dislike'].messageId
+            a.data['like-dislike'].messageId,
+            {
+              lang: Userlang,
+              source: UserSource,
+              applicationId: UserApplicationID,
+            }
           );
           s.emit(
             'like-dislike',
@@ -100,19 +115,25 @@ export function AddUserNameSpace(server: Server) {
             })
           );
         } else if (a.type === 'follow-up') {
-          SendMessageToBot({
-            message: a.data['follow-up'].follow_up_value,
-            roomid: s.user_data.room.RoomID,
-            uname: s.user_data.user.ChatUsersAttributes.name,
-            followup_key: a.data['follow-up'].follow_up_key,
-          });
+          SendMessageToBot(
+            {
+              message: a.data['follow-up'].follow_up_value,
+              roomid: s.user_data.room.RoomID,
+              uname: s.user_data.user.ChatUsersAttributes.name,
+              followup_key: a.data['follow-up'].follow_up_key,
+            },
+            a.data['follow-up'].extra
+          );
         } else if (a.type === 'send-message') {
           //TODO: Check Room Status Here Then Send To Bot
-          SendMessageToBot({
-            message: a.data['send-message'].message,
-            roomid: s.user_data.room.RoomID,
-            uname: s.user_data.user.ChatUsersAttributes.name,
-          });
+          SendMessageToBot(
+            {
+              message: a.data['send-message'].message,
+              roomid: s.user_data.room.RoomID,
+              uname: s.user_data.user.ChatUsersAttributes.name,
+            },
+            a.data['send-message'].extra
+          );
         } else if (a.type === 'chat-history') {
           //TODO: Check Room Status Here Then Send To Bot
           const roomid = s.user_data.room.RoomID;
@@ -145,6 +166,12 @@ export function AddUserNameSpace(server: Server) {
               roomid,
               lang: Userlang,
             })
+          );
+        } else if (a.type === 'process-agent') {
+          const roomid = s.user_data.room.RoomID;
+          s.emit(
+            'process-agent',
+            await ProcessAgentBotAPi(a.data['process-agent'], roomid)
           );
         }
       }

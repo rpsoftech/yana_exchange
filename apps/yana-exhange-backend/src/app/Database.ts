@@ -16,6 +16,7 @@ import {
   UserData,
   SupportedLanguage,
   ChatHistoruReqServer,
+  AddtionalInputsFromUserInSession,
 } from '@yana-exhchange/interface';
 
 export const DbPool = new Pool({
@@ -157,12 +158,15 @@ export async function CreateNewChatRecord(
     }
   });
 }
-export async function SendMessageToBot(options: {
-  message: string;
-  roomid: string;
-  uname: string;
-  followup_key?: string;
-}) {
+export async function SendMessageToBot(
+  options: {
+    message: string;
+    roomid: string;
+    uname: string;
+    followup_key?: string;
+  },
+  extra: AddtionalInputsFromUserInSession = {}
+) {
   CreateNewChatRecord(
     {
       ChatHistoryId: uuid(),
@@ -178,10 +182,14 @@ export async function SendMessageToBot(options: {
     true,
     0
   );
-  const BotRespo = await RequestToBot(options.followup_key || options.message, {
-    roomid: options.roomid,
-    isFollow_up: typeof options.followup_key !== 'undefined',
-  });
+  const BotRespo = await RequestToBot(
+    options.followup_key || options.message,
+    {
+      roomid: options.roomid,
+      isFollow_up: typeof options.followup_key !== 'undefined',
+    },
+    extra
+  );
   const lang = BotRespo.extra.languageCode.toUpperCase();
   CreateNewChatRecord(
     {
@@ -189,9 +197,10 @@ export async function SendMessageToBot(options: {
       CHAttributes: {
         msg_from_name: 'BOT',
         bot: {
+          processAgent: BotRespo.extra.processAgent,
           output: BotRespo.response,
           results: BotRespo.extra.results,
-          nudgeOptions:BotRespo.nudgeOptions,
+          nudgeOptions: BotRespo.extra.nudgeOptions,
         },
       },
       CHCreatedOn: GetTimeStamp(),
@@ -209,12 +218,17 @@ export async function SendMessageToBot(options: {
 export async function CreateNewBotSession(
   roomid: string,
   UniqueID: string,
-  lang?: SupportedLanguage
+  lang: SupportedLanguage,
+  additionalInputs: AddtionalInputsFromUserInSession
 ) {
-  const BotRespo = await DeviceSyncCallForBot({
-    roomid,
-    lang,
-  });
+  const BotRespo = await DeviceSyncCallForBot(
+    {
+      roomid,
+      lang,
+    },
+    false,
+    additionalInputs
+  );
   const RoomEntry = {
     RoomAttributes: {
       created_by_unique_id: UniqueID,
@@ -233,8 +247,10 @@ export async function CreateNewBotSession(
         CHAttributes: {
           msg_from_name: 'BOT',
           bot: {
+            processAgent: BotRespo.extra.processAgent,
             output: BotRespo.response,
             results: BotRespo.extra.results,
+            nudgeOptions: BotRespo.extra.nudgeOptions,
           },
         },
         CHCreatedOn: GetTimeStamp(),

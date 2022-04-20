@@ -1,21 +1,11 @@
-import { SupportedLanguage } from './yana-exchange-interface';
+import { SupportedLanguage, SupportedSources } from './yana-exchange-interface';
+import { ProcessParams } from './yana-exchange.front';
 
-export interface BotReq {
-  text: string;
-  context: BotContext;
-  userId: string;
-  personID: string;
-  addtnlInputParams: AddtnlInputParams;
-  userDisplayName: string;
-  messageId: string;
-  languageCode: string;
-  source: string;
-  applicationId: string;
-  testMode: string;
-  inputmode: string;
-  sourceVersion: string;
+export interface AddtionalInputsFromUserInSession {
+  source?: SupportedSources;
+  applicationId?: string;
+  languageCode?: SupportedLanguage;
 }
-
 export interface AddtnlInputParams {
   latitude: string;
   longitude: string;
@@ -81,14 +71,11 @@ export interface LikeDisLikeReqObject {
 }
 export interface BotApiReq {
   text?: string;
-  apiId?: '1' | '7' | '4' | '9' | '8';
+  apiId?: '1' | '4' | '5' | '6' | '7' | '8' | '9';
   context?: BotContext;
   userId?: string;
   personID?: string;
-  addtnlInputParams?: {
-    latitude: string;
-    longitude: string;
-  };
+  addtnlInputParams?: AddtnlInputParams;
   userAcadPlan?: any;
   additionalPersistentInformation?: any;
   userDisplayName?: string;
@@ -96,9 +83,6 @@ export interface BotApiReq {
   languageCode: string;
   source?: string;
   applicationId?: string;
-  // testMode: 'N',
-  // inputmode: string,
-  // sourceVersion: ' 2.10.0.1',
 }
 export interface DisLikeOptionsRespo {
   likeOrDislike: 'Dislike' | 'Like';
@@ -139,7 +123,8 @@ export interface BotAPIResponse {
   responseStatus?: number;
   applicationStatus?: string;
   decisionStatus?: number;
-  processAgent?: ProcessAgent;
+  processAgent?: ProcessAgentInterface;
+  processParams?: ProcessParams;
   results?: Results;
   context?: BotContext;
   responseCategory?: string;
@@ -228,10 +213,11 @@ export interface LanguageOutput {
   voiceonly: string;
 }
 
-export interface ProcessAgent {
+export interface ProcessAgentInterface {
+  processAgentId: string;
+  processId: string;
   processAgentTxnId: string;
 }
-
 export interface Results {
   objType: string;
   objects: ResultObject[];

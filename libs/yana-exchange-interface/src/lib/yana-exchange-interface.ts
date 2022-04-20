@@ -4,9 +4,17 @@ import { Room } from './yana-exchange.history.interface';
 export interface YanaSdkInitOptions {
   name?: string;
   language?: SupportedLanguage;
+  applicationId: string;
+  source: SupportedSources;
 }
 
 export type SupportedLanguage = 'EN' | 'DE' | 'AR' | 'ES' | 'IT';
+export type SupportedSources =
+  | 'mobile'
+  | 'webapp'
+  | 'alexa'
+  | 'facebook'
+  | 'teams';
 
 export interface UserData {
   UniqueID?: string;
@@ -24,6 +32,8 @@ export interface SocketioSocket extends Socket {
   };
   handshake: Handshake & {
     auth: {
+      applicationId: string;
+      source: SupportedSources;
       lang: SupportedLanguage;
       type?: 'anno';
       name?: string;

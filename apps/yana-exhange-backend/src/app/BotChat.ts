@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  AddtionalInputsFromUserInSession,
   BotApiReq,
   BotAPIResponse,
   BotDislikeOptionsReq,
   BotLikeDislikeReq,
   LikeDisLikeReasonRespo,
   LikeDisLikeRespo,
+  ProcessAgentInterface,
+  ProcessAgentResponse,
+  ProcessParams,
   SupportedLanguage,
+  SupportedSources,
 } from '@yana-exhchange/interface';
 import * as ax from 'axios';
 import { CreateNewChatRecord } from './Database';
@@ -20,30 +25,16 @@ export async function RequestToBot(
   options: {
     lang?: SupportedLanguage;
     roomid: string;
-    user_id?: string;
     isFollow_up?: boolean;
-  }
+  },
+  extra: AddtionalInputsFromUserInSession
 ) {
-  const APIREQ: BotApiReq =
-    (await GetBotContext(options.roomid)) ||
-    ({
-      text: text,
-      apiId: '1',
-      context: await GetBotContext(options.roomid),
-      userId: options.user_id ? options.user_id : '0000',
-      personID: '',
-      addtnlInputParams: {
-        latitude: '',
-        longitude: '',
-      },
-      userAcadPlan: {},
-      additionalPersistentInformation: {},
-      userDisplayName: '',
-      languageCode: options.lang ? options.lang.toLowerCase() : 'en',
-      source: 'webapp',
-      applicationId: '83',
-    } as any);
+  const APIREQ: BotApiReq = Object.assign(
+    await GetBotContext(options.roomid),
+    extra
+  );
   APIREQ.text = text;
+  APIREQ.languageCode = options.lang || APIREQ.languageCode;
   APIREQ.apiId = options.isFollow_up ? '8' : '1';
   return ax.default
     .post<BotAPIResponse, { data: BotAPIResponse }, BotApiReq>(
@@ -56,7 +47,28 @@ export async function RequestToBot(
         bot_id: a.data.context.bot_conversation_id,
         response: a.data.output,
         extra: a.data,
-        nudgeOptions: a.data.nudgeOptions,
+      };
+    });
+}
+export async function ProcessAgentBotAPi(
+  options: {
+    processParams?: ProcessParams;
+    processAgent: ProcessAgentInterface;
+  },
+  roomid: string
+): Promise<ProcessAgentResponse> {
+  const APIREQ: BotApiReq = Object.assign(await GetBotContext(roomid), options);
+  APIREQ.apiId = '5';
+  return ax.default
+    .post<LikeDisLikeReasonRespo, { data: LikeDisLikeReasonRespo }, BotApiReq>(
+      'https://yanademo-orchestrator.yanaimpl.com/',
+      APIREQ
+    )
+    .then((a) => {
+      return {
+        MessageId: a.data.MessageId,
+        processAgent: a.data.processAgent,
+        processParams: a.data.processParams,
       };
     });
 }
@@ -65,10 +77,11 @@ export async function DeviceSyncCallForBot(
     lang: SupportedLanguage;
     roomid: string;
   },
-  AddToDatabase = false
+  AddToDatabase = false,
+  extra: AddtionalInputsFromUserInSession = {}
 ) {
   const cont: any = (await GetBotContext(options.roomid)) || {};
-  const APIREQ: BotApiReq = Object.assign(cont, {
+  const APIREQ: BotApiReq = Object.assign(cont, extra, {
     languageCode: options.lang,
     apiId: '9',
   });
@@ -91,8 +104,10 @@ export async function DeviceSyncCallForBot(
             CHAttributes: {
               msg_from_name: 'BOT',
               bot: {
+                processAgent: BotRespo.extra.processAgent,
                 output: BotRespo.response,
                 results: BotRespo.extra.results,
+                nudgeOptions: a.data.nudgeOptions,
               },
             },
             CHCreatedOn: GetTimeStamp(),
@@ -134,14 +149,19 @@ export async function GetDisLikeOptions(options: {
 export async function LikeDisLikeMessage(
   like_dislike: string,
   reasonsSelected: string[] = [],
-  messageId: string
+  messageId: string,
+  options: {
+    lang: SupportedLanguage;
+    source: SupportedSources;
+    applicationId: string;
+  }
 ) {
   const a: BotLikeDislikeReq = {
     apiId: '7',
     personID: '',
-    languageCode: 'en',
-    source: 'webapp',
-    applicationId: '83',
+    languageCode: options.lang.toLowerCase(),
+    source: options.source,
+    applicationId: options.applicationId,
     updateLikeOrDislike: {
       likeOrDislike: like_dislike.toString() as any,
       reasonsSelected: reasonsSelected,
