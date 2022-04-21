@@ -21,5 +21,9 @@
     "query-builder-mysql": "*",
     "axios": "*",
     "uuid": "*"
-  }
+  },
+  "optionalDependencies": {
+    "bufferutil": "*",
+    "utf-8-validate": "*"
+  } 
 }

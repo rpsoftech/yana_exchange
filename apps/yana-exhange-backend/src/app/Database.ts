@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ChatUsers } from 'prisma_database';
+export type ChatUsers = {
+  UniqueID: string
+  ChatUsersRoomID: string | null
+  ChatUsersAttributes: any
+}
 import { Server } from 'socket.io';
 import { Pool, QueryExec } from 'query-builder-mysql';
 import { environment } from '../environments/environment';
@@ -18,14 +22,18 @@ import {
   ChatHistoruReqServer,
   AddtionalInputsFromUserInSession,
 } from '@yana-exhchange/interface';
+console.log(environment);
 
-export const DbPool = new Pool({
+const DatabaseOptions ={
   host: process.env.DBHOST,
-  connectionLimit: environment.production ? 10 : 3,
+  connectionLimit:10,
   password: process.env.DBPASSWORD,
   user: process.env.DBUSER,
   database: process.env.DATABASE,
-});
+}
+console.log('Database Otions Are');
+console.log(DatabaseOptions);
+export const DbPool = new Pool(DatabaseOptions);
 // DbPrisma.room.findMany().then(console.log);
 export const ActiveRoomStatus: {
   [room_id: string]: number;
