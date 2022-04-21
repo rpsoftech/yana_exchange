@@ -34,7 +34,6 @@ const DatabaseOptions ={
 console.log('Database Otions Are');
 console.log(DatabaseOptions);
 export const DbPool = new Pool(DatabaseOptions);
-// DbPrisma.room.findMany().then(console.log);
 export const ActiveRoomStatus: {
   [room_id: string]: number;
 } = {};

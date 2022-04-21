@@ -2,5 +2,7 @@
   "name": "yanaexchange-js-sdk",
   "version": "0.0.1",
   "type": "module",
-  "dependencies": {}
+  "dependencies": {
+    "socket.io-client": "^4.4.1"
+  }
 }
