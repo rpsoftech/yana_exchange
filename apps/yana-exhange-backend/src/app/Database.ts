@@ -6,7 +6,6 @@ export type ChatUsers = {
 };
 import { Server } from 'socket.io';
 import { Pool, QueryExec } from 'query-builder-mysql';
-import { environment } from '../environments/environment';
 import { DeviceSyncCallForBot, RequestToBot } from './BotChat';
 import { v4 as uuid } from 'uuid';
 import { GetTimeStamp } from './Genralunctions';
@@ -22,7 +21,6 @@ import {
   ChatHistoruReqServer,
   AddtionalInputsFromUserInSession,
 } from '@yana-exhchange/interface';
-console.log(environment);
 
 const DatabaseOptions = {
   host: process.env.DBHOST,
@@ -30,10 +28,24 @@ const DatabaseOptions = {
   password: process.env.DBPASSWORD,
   user: process.env.DBUSER,
   database: process.env.DATABASE,
+  decimalAsNumber: true,
+  bigIntAsNumber: true,
+  insertIdAsNumber: true,
 };
 console.log('Database Otions Are');
 console.log(DatabaseOptions);
 export const DbPool = new Pool(DatabaseOptions);
+const REGEXMAtch = /(\\"|\\\\")/gm;
+const REGEXMatch2 = /"{/gm;
+const REGEXMatch3 = /}"/gm;
+DbPool.AddDataProcessorPostExecution((d) => {
+  return JSON.parse(
+    JSON.stringify(d)
+      .replace(REGEXMAtch, '"')
+      .replace(REGEXMatch2, '{')
+      .replace(REGEXMatch3, '}')
+  );
+});
 export const ActiveRoomStatus: {
   [room_id: string]: number;
 } = {};
@@ -156,7 +168,9 @@ export async function CreateNewChatRecord(
   emit_delay = 0,
   dbRef?: QueryExec
 ) {
-  data.CHAttributes.bot.MessageId = data.ChatHistoryId;
+  if (data.CHAttributes && data.CHAttributes.bot) {
+    data.CHAttributes.bot.messageId = data.ChatHistoryId;
+  }
   return InsertUpdateChatHistory(data, null, dbRef).finally(() => {
     if (emitToRoom === true) {
       setTimeout(() => {

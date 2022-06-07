@@ -9,12 +9,15 @@ declare const window: any;
 })
 export class AppComponent {
   constructor() {
-    const yanaexchangeObj = InitSdk('http://ec2-13-59-1-13.us-east-2.compute.amazonaws.com:3001/users', {
-      name: 'Keyur shah',
-      language: 'EN',
-      applicationId: '83',
-      source: 'webapp',
-    });
+    const yanaexchangeObj = InitSdk(
+      'https://a079-171-50-246-31.ngrok.io/users',
+      {
+        name: 'Keyur shah',
+        language: 'EN',
+        applicationId: '83',
+        source: 'webapp',
+      }
+    );
     window.yanaexchangeObj = yanaexchangeObj;
     yanaexchangeObj.on('connect').subscribe(() => {
       console.log('asihdiasodhoihasdho');
@@ -25,6 +28,12 @@ export class AppComponent {
         get_all: true,
       })
       .then(console.log);
-    yanaexchangeObj.on('NewMessage').subscribe(console.log);
+    yanaexchangeObj.on<'NewMessage'>('NewMessage').subscribe(a=>{
+      yanaexchangeObj.SendLikeDislikeForMessage({
+        likeOrDislike:true,
+        messageId:a.ChatHistoryId,
+        reasonsSelected:[]
+      })
+    });
   }
 }

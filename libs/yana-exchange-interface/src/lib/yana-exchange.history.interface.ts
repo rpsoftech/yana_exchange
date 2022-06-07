@@ -15,7 +15,7 @@ export interface ChatHistory {
   CHCreatedOn: number;
 }
 export interface ChatHistoryAttributesBotObject {
-  MessageId?: string;
+  messageId?: string;
   processParams?: ProcessParams;
   processAgent: ProcessAgentInterface;
   output: Output;
