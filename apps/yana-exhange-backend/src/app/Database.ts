@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type ChatUsers = {
-  UniqueID: string
-  ChatUsersRoomID: string | null
-  ChatUsersAttributes: any
-}
+  UniqueID: string;
+  ChatUsersRoomID: string | null;
+  ChatUsersAttributes: any;
+};
 import { Server } from 'socket.io';
 import { Pool, QueryExec } from 'query-builder-mysql';
 import { environment } from '../environments/environment';
@@ -24,13 +24,13 @@ import {
 } from '@yana-exhchange/interface';
 console.log(environment);
 
-const DatabaseOptions ={
+const DatabaseOptions = {
   host: process.env.DBHOST,
-  connectionLimit:10,
+  connectionLimit: 10,
   password: process.env.DBPASSWORD,
   user: process.env.DBUSER,
   database: process.env.DATABASE,
-}
+};
 console.log('Database Otions Are');
 console.log(DatabaseOptions);
 export const DbPool = new Pool(DatabaseOptions);
@@ -156,9 +156,11 @@ export async function CreateNewChatRecord(
   emit_delay = 0,
   dbRef?: QueryExec
 ) {
+  data.CHAttributes.bot.MessageId = data.ChatHistoryId;
   return InsertUpdateChatHistory(data, null, dbRef).finally(() => {
     if (emitToRoom === true) {
       setTimeout(() => {
+        // console.log(data);
         server.of('users').to(roomid).emit('NewMessage', data);
         server.of('agent').to(roomid).emit('NewMessage', data);
       }, emit_delay);
