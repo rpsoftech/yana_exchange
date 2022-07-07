@@ -7,7 +7,7 @@
     "compodoc": "compodoc -p tsconfig.base.json -s",
     "build": "nx build",
     "test": "nx test",
-    "postinstall1": "ngcc --properties es2015 browser module main"
+    "postinstall": "ngcc --properties es2015 browser module main"
   },
   "workspaces": [
     "apps/**",
@@ -19,7 +19,7 @@
     "@angular-eslint/eslint-plugin": "14.0.0",
     "@angular-eslint/eslint-plugin-template": "14.0.0",
     "@angular-eslint/template-parser": "14.0.0",
-    "@angular/cli": "~14.0.0",
+    "@angular/cli": "14.0.5",
     "@angular/compiler-cli": "14.0.5",
     "@angular/language-service": "14.0.5",
     "@compodoc/compodoc": "^1.1.19",
@@ -75,3 +75,4 @@
     "utf-8-validate": "^5.0.9"
   }
 }
+
