@@ -4,6 +4,6 @@
     "yana-exchange-frontend-sdk": "libs/yana-exchange-frontend-sdk",
     "yana-exchange-interface": "libs/yana-exchange-interface",
     "yana-exchange-test": "apps/yana-exchange-test",
-    "yana-exhange-backend": "apps/yana-exhange-backend"
+    "yana-exchange-backend": "apps/yana-exchange-backend"
   }
 }

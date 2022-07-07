@@ -21,11 +21,16 @@ import {
   ChatHistoruReqServer,
   AddtionalInputsFromUserInSession,
 } from '@yana-exhchange/interface';
+import { createServer } from 'https';
+import { join } from 'path';
+import { existsSync, readFileSync } from 'fs';
+import { PoolConfig } from 'mariadb';
 
-const DatabaseOptions = {
+const DatabaseOptions: PoolConfig = {
   host: process.env.DBHOST,
   connectionLimit: 10,
   password: process.env.DBPASSWORD,
+  port: process.env.DBPORT ? +process.env.DBPORT : 3306,
   user: process.env.DBUSER,
   database: process.env.DATABASE,
   decimalAsNumber: true,
@@ -54,10 +59,39 @@ export const BotIds: {
   [session_id: string]: string;
 } = {};
 
-export const server = new Server({
-  cors: '*',
-  // transports: ['websocket'],
-} as any);
+export const server = (() => {
+  const sslFilePath = join(__dirname,'assets','ssl.json');
+  if (existsSync(sslFilePath)) {
+    const sslFileStringData = readFileSync(sslFilePath);
+    try {
+      const SSLConfig: {
+        key: string;
+        crt: string;
+        ca: string[];
+      } = JSON.parse(sslFileStringData.toString());
+      if (
+        typeof SSLConfig.key === 'string' &&
+        typeof SSLConfig.crt === 'string' &&
+        typeof SSLConfig.ca === 'object' &&
+        Array.isArray(SSLConfig.ca)
+      ) {
+        const SSLServer = createServer(SSLConfig);
+        return new Server(SSLServer, {
+          cors: {
+            origin: '*',
+          },
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  return new Server({
+    cors: {
+      origin: '*',
+    },
+  });
+})();
 
 export async function GetUsers(where?: {
   uid?: string | string[];
@@ -313,8 +347,10 @@ export async function GetChatHistory(req?: ChatHistoruReqServer) {
     if (req) {
       if (req.CHRoomID) {
         if (Array.isArray(req.CHRoomID)) {
+          // ch.CHRoomID in (req.CHRoomID)
           db.where_in('ch.CHRoomID', req.CHRoomID);
         } else {
+          // ch.CHRoomID = req.CHRoomID
           db.where('ch.CHRoomID', req.CHRoomID);
         }
       }
@@ -330,9 +366,11 @@ export async function GetChatHistory(req?: ChatHistoruReqServer) {
         typeof req.limit === 'number' &&
         typeof req.stream === 'number'
       ) {
+        // LIMIT 10,5
         db.limit(req.limit, (req.stream - 1) * req.limit);
       }
       if (req.order_by_time) {
+        // Order by ch.CHCreatedOn ASC || DESC
         db.order_by('ch.CHCreatedOn', req.order_by_time);
       }
     }

@@ -99,6 +99,7 @@ export interface ChatHistoruReqServer extends ChatHistoruReq {
 }
 export interface ChatHistoruReq {
   get_all: boolean;
+  // Consider as Page 1 ,2 ,3
   stream?: number;
   limit?: number;
   order_by_time?: 'asc' | 'desc';

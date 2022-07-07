@@ -1,0 +1,5 @@
+{
+    "key":"Private Key",
+    "crt":"Main certificate",
+    "ca":["string array of "]
+}

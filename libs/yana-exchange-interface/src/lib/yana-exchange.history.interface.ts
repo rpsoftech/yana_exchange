@@ -28,7 +28,7 @@ export interface CHAttributes {
   bot?: ChatHistoryAttributesBotObject;
 }
 export interface ChatHistoryUncheckedCreateInput {
-  ChatHistoryId: string;
+  ChatHistoryId: string; //messageid
   CHRoomID: string;
   Message: string;
   MessageFrom: ChatHistory_MessageFrom;

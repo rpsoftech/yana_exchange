@@ -188,6 +188,7 @@ export class YanaExchange {
       )
     );
   }
+
   /**
    *
    * @param message string Text Message To Send To Server

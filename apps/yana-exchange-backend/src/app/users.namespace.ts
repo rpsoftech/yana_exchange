@@ -25,6 +25,7 @@ import { SignData, VerifyData } from './Genralunctions';
 export function AddUserNameSpace(server: Server) {
   server.of('users').use(async (socket: SocketioSocket, next) => {
     socket.user_data = {};
+    // Assign UID
     if (typeof socket.handshake.auth.token === 'undefined') {
       //TODO: Make Configurable Users Default Name
       const user = await CreateNewUser(socket.handshake.auth.name || 'Anno');
@@ -40,6 +41,7 @@ export function AddUserNameSpace(server: Server) {
         type: u.type,
       };
     }
+
     if (socket.user_data.user.ChatUsersRoomID === null) {
       const UsersDataArray = await GetUsers({
         uid: socket.user_data.user.UniqueID,
@@ -55,9 +57,11 @@ export function AddUserNameSpace(server: Server) {
         source: socket.handshake.auth.source,
       };
       if (user.RoomStatus === null) {
-        //TODO: Create New Seesion
+        // Create New Seesion
         const roomid = uuid();
+        // JOin The Specific room in namespace
         socket.join(roomid);
+
         const a = await CreateNewBotSession(
           roomid,
           user.UniqueID,
@@ -74,12 +78,15 @@ export function AddUserNameSpace(server: Server) {
           RoomCreatedOn: user.RoomCreatedOn,
         };
         SetBotContext(user.RoomID, extraBotSessionInputs);
+        // Joining user to specific room of namespace
         socket.join(user.RoomID);
       }
     }
     next();
   });
+
   server.of('users').on('connection', (s: SocketioSocket) => {
+    
     let Userlang = s.handshake.auth.lang;
     const UserSource = s.handshake.auth.source;
     const UserApplicationID = s.handshake.auth.applicationId;
