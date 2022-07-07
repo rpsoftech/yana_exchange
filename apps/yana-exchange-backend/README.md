@@ -19,6 +19,7 @@ DBHOST="Database Conenction Url"
 DBUSER="Database User Name"
 DBPORT="Database Port Number" (Optional)
 DBPASSWORD="Database User Password"
+USEDBJSONPARSER="true"(USE this when end point database is Mariadb or MYSQL version lessthan v8.x)
 REDISURL="Redis Database URL" (Optional If Want to use Redis For Auto Scaling)
 ``` 
 Step 4:(Optional If want to enable `SSL capability`)

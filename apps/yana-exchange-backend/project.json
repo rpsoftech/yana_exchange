@@ -1,5 +1,5 @@
 {
-  "root": "apps/yana-exchange-backend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/yana-exchange-backend/src",
   "projectType": "application",
   "targets": {

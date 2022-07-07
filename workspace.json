@@ -1,9 +1,10 @@
 {
   "version": 2,
   "projects": {
+    "yana-exchange-backend": "apps/yana-exchange-backend",
     "yana-exchange-frontend-sdk": "libs/yana-exchange-frontend-sdk",
     "yana-exchange-interface": "libs/yana-exchange-interface",
-    "yana-exchange-test": "apps/yana-exchange-test",
-    "yana-exchange-backend": "apps/yana-exchange-backend"
-  }
+    "yana-exchange-test": "apps/yana-exchange-test"
+  },
+  "$schema": "./node_modules/nx/schemas/workspace-schema.json"
 }

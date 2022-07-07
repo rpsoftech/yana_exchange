@@ -14,7 +14,7 @@ import {
   SupportedSources,
 } from '@yana-exhchange/interface';
 import * as ax from 'axios';
-import { CreateNewChatRecord } from './Database';
+import { CreateNewChatRecord, RedisConnection } from './Database';
 import { GetTimeStamp } from './Genralunctions';
 export const BotIdWithContext: {
   [key: string]: BotApiReq;
@@ -191,13 +191,19 @@ export async function ChangeLang(roomid: string, lang: SupportedLanguage) {
   });
 }
 export async function GetBotContext(roomid: string) {
-  // TODO: Get Data from redis database
+  if (RedisConnection !== null) {
+    const val = await RedisConnection.get(`botcon${roomid}`);
+    if (typeof val !== 'undefined' && val !== null) {
+      return typeof val === 'object' ? val : JSON.parse(val);
+    }
+  }
   return BotIdWithContext[roomid];
 }
 export async function SetBotContext(roomid: string, con: BotAPIResponse) {
-  // TODO: Get Data from redis database
-  BotIdWithContext[roomid] = Object.assign(
-    (await GetBotContext(roomid)) || {},
-    con
-  ) as any;
+  const val = Object.assign((await GetBotContext(roomid)) || {}, con);
+  if (RedisConnection !== null) {
+    await RedisConnection.set(`botcon${roomid}`, JSON.stringify(val));
+  } else {
+    BotIdWithContext[roomid] = val;
+  }
 }

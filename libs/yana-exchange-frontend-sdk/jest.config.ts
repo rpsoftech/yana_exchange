@@ -1,4 +1,5 @@
-module.exports = {
+/* eslint-disable */
+export default {
   displayName: 'yana-exchange-frontend-sdk',
   preset: '../../jest.preset.js',
   globals: {

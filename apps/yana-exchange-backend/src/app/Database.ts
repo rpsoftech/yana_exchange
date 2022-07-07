@@ -25,6 +25,8 @@ import { createServer } from 'https';
 import { join } from 'path';
 import { existsSync, readFileSync } from 'fs';
 import { PoolConfig } from 'mariadb';
+import { createClient as CreateRedisConnectoin } from 'redis';
+import { createAdapter as CreateRedisAdapter } from '@socket.io/redis-adapter';
 
 const DatabaseOptions: PoolConfig = {
   host: process.env.DBHOST,
@@ -40,17 +42,20 @@ const DatabaseOptions: PoolConfig = {
 console.log('Database Otions Are');
 console.log(DatabaseOptions);
 export const DbPool = new Pool(DatabaseOptions);
-const REGEXMAtch = /(\\"|\\\\")/gm;
-const REGEXMatch2 = /"{/gm;
-const REGEXMatch3 = /}"/gm;
-DbPool.AddDataProcessorPostExecution((d) => {
-  return JSON.parse(
-    JSON.stringify(d)
-      .replace(REGEXMAtch, '"')
-      .replace(REGEXMatch2, '{')
-      .replace(REGEXMatch3, '}')
-  );
-});
+
+if (process.env.USEDBJSONPARSER === 'true') {
+  const REGEXMAtch = /(\\"|\\\\")/gm;
+  const REGEXMatch2 = /"{/gm;
+  const REGEXMatch3 = /}"/gm;
+  DbPool.AddDataProcessorPostExecution((d) => {
+    return JSON.parse(
+      JSON.stringify(d)
+        .replace(REGEXMAtch, '"')
+        .replace(REGEXMatch2, '{')
+        .replace(REGEXMatch3, '}')
+    );
+  });
+}
 export const ActiveRoomStatus: {
   [room_id: string]: number;
 } = {};
@@ -59,8 +64,9 @@ export const BotIds: {
   [session_id: string]: string;
 } = {};
 
-export const server = (() => {
-  const sslFilePath = join(__dirname,'assets','ssl.json');
+// Socket IO Server Instance
+export const server: Server = (() => {
+  const sslFilePath = join(__dirname, 'assets', 'ssl.json');
   if (existsSync(sslFilePath)) {
     const sslFileStringData = readFileSync(sslFilePath);
     try {
@@ -92,6 +98,19 @@ export const server = (() => {
     },
   });
 })();
+
+// Redis Connection
+export const RedisConnection = process.env.REDISURL
+  ? CreateRedisConnectoin({ url: process.env.REDISURL })
+  : null;
+if (RedisConnection !== null) {
+  RedisConnection.connect();
+}
+if (process.env.REDISURL) {
+  const pubClient = RedisConnection.duplicate();
+  const subClient = RedisConnection.duplicate();
+  server.adapter(CreateRedisAdapter(pubClient, subClient));
+}
 
 export async function GetUsers(where?: {
   uid?: string | string[];
